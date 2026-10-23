@@ -1,0 +1,10 @@
+{
+  "name": "gati-dashboards",
+  "version": "1.0.0",
+  "description": "GATI skills-mobility sector dashboards (static, GitHub Pages).",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:meta": "node scripts/build-meta.mjs"
+  }
+}

@@ -1,0 +1,10 @@
+
+<div class="insight-box" style="margin-bottom:16px">
+  <b>Visa &amp; work-authorization signals.</b> This tab reads every clinical healthcare postings — nursing, medicine, allied health and care roles in the loaded dataset and detects, per posting, whether the employer states any visa, residence-permit, work-permit, EU/EEA-status, Blue Card, qualification-recognition (Anerkennung) or relocation-support signal. The same rule engine and context vetoes as GATI's extraction pipeline are used, so false positives such as "Visa credit card" or equal-opportunity boilerplate are filtered out. Figures are shown for the ten largest ISCO-4 occupations as a share of that occupation's postings.
+</div>
+
+<div class="card card-t">
+  <div class="card-head">Visa &amp; Work-Authorization Requirements · Top 10 Occupations (computed live)</div>
+  <div class="card-sub">"Carries a visa / work-authorization signal" counts any posting mentioning at least one of the detected legal-status categories. The breakdown lists the specific signals employers state and how often, as a share of the occupation's postings.</div>
+  <div id="visa-extract"><div style="padding:14px;color:#7A9C9C;font-size:12px">Scanning the dataset for visa &amp; work-authorization signals… <span id="visa-extract-pct"></span></div></div>
+</div>

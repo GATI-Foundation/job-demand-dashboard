@@ -1,0 +1,64 @@
+
+<div class="insight-box" style="margin-bottom:16px">
+  <b>What this dashboard covers.</b> Job postings scraped from StepStone Germany for the clinical healthcare labour market: nursing, medicine, allied health, and the associate and personal-care roles around them. Every posting is classified to the ISCO-08 standard at the 3-digit and 4-digit level, geocoded to a federal state, and mapped to its employer sector from the dataset's Employer_Category column. All charts in the other tabs respond to the header filters.
+</div>
+
+<div class="grid-2">
+  <div class="card card-t">
+    <div class="card-head">Healthcare Role Categories (ISCO-08)</div>
+    <div>
+      <div class="gloss-block"><span class="gloss-code">222</span><span class="gloss-name">Nursing and Midwifery Professionals</span><div class="gloss-desc">Registered nurses and midwives. University-level qualifications. The single largest vacancy category: approximately 1 in 4 clinical healthcare ads is for a nurse (26.7% of all clinical postings). BA-classified shortage occupation (Engpassberuf) with an average vacancy duration of approximately 246 days.</div></div>
+      <div class="gloss-block"><span class="gloss-code">221</span><span class="gloss-name">Medical Doctors</span><div class="gloss-desc">Generalist and specialist medical practitioners. Fifth-largest group by posting volume. Concentrated in hospitals, mental health and rehabilitation, and medical practices.</div></div>
+      <div class="gloss-block"><span class="gloss-code">226</span><span class="gloss-name">Allied Health Professionals</span><div class="gloss-desc">Physiotherapists, pharmacists, dentists, speech therapists, and dieticians. Degree-level specialists with strong demand in outpatient and rehabilitation settings.</div></div>
+      <div class="gloss-block"><span class="gloss-code">325</span><span class="gloss-name">Health Associate Professionals</span><div class="gloss-desc">Medical assistants (MFA), dental assistants (ZFA), ambulance workers, and physiotherapy technicians. Vocational-track roles forming the operational backbone of clinics and practices.</div></div>
+      <div class="gloss-block"><span class="gloss-code">321</span><span class="gloss-name">Medical and Pharmaceutical Technicians</span><div class="gloss-desc">Radiographers, laboratory technicians, pharmacy technicians, and dental technicians. Vocational-track.</div></div>
+      <div class="gloss-block"><span class="gloss-code">322</span><span class="gloss-name">Nursing and Midwifery Associates</span><div class="gloss-desc">Basic nursing care delivered under supervision. Vocational-track.</div></div>
+      <div class="gloss-block"><span class="gloss-code">532</span><span class="gloss-name">Personal Care Workers</span><div class="gloss-desc">Healthcare assistants and home care workers in residential and community settings. BA-classified shortage occupation with the longest average vacancy duration of any healthcare category: approximately 286 days.</div></div>
+      <div class="gloss-block"><span class="gloss-code">531</span><span class="gloss-name">Child Care Workers</span><div class="gloss-desc">Child care workers and teachers aides in healthcare-adjacent settings.</div></div>
+    </div>
+  </div>
+  <div>
+    <div class="card card-g" style="margin-bottom:14px">
+      <div class="card-head">Employer Sectors (ISIC Rev.4, from Employer_Category)</div>
+      <div class="card-sub">Computed live from the currently loaded dataset: the leading sectors exactly as named in the Employer_Category column, with their ISIC-2 codes, posting counts, and what each category includes.</div>
+      <div id="about-sector-gloss"><div class="gloss-desc" style="padding:10px 14px">Loading sector list from the data…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BA TRIANGULATION CARD -->
+<div class="card card-t" style="margin-top:14px">
+  <div class="card-head">BA Triangulation: StepStone Data vs. Official Fachkr&auml;fteengpassanalyse</div>
+  <div class="card-body" style="padding-top:12px">
+    <div class="insight-box" style="margin-bottom:14px">All five workforce groups tracked in this dashboard (ISCO 222, 325, 226, 532, 221) are formally classified as <b>Engpassberufe</b> (shortage occupations) by the Bundesagentur f&uuml;r Arbeit (BA) in its 2024 Fachkr&auml;fteengpassanalyse. The StepStone demand picture is broadly consistent with BA official supply-demand signals.</div>
+    <table class="data-tbl" style="margin-bottom:14px">
+      <thead><tr><th>BA Indicator</th><th>Healthcare (avg)</th><th>All Sectors (avg)</th><th>StepStone Signal</th></tr></thead>
+      <tbody>
+        <tr><td><b>Vakanzzeit</b> (average vacancy duration)</td><td class="cnt">246 to 286 days</td><td>approx. 50 days</td><td>Nursing accounts for 26.7% of all healthcare ads, confirming a chronic open pipeline</td></tr>
+        <tr><td><b>Stellen-Arbeitslosen-Relation</b> (unemployed per 100 posts)</td><td class="cnt">44 (qualified nurses)</td><td>approx. 235</td><td>High nursing posting volume is consistent with structural undersupply</td></tr>
+        <tr><td><b>Top hiring sector</b></td><td>Residential and Long-term Care</td><td>n/a</td><td>Residential Care is the largest employer sector in the dataset</td></tr>
+        <tr><td><b>On-site requirement</b></td><td>more than 97%</td><td>n/a</td><td>97%+ of StepStone healthcare postings require in-Germany presence</td></tr>
+        <tr><td><b>International recruitment</b></td><td>Triple Win (India, Philippines, Indonesia, Tunisia, Bosnia)</td><td>n/a</td><td>Approximately 0.1% mention visa sponsorship: domestic supply gap is unaddressed in job ads</td></tr>
+      </tbody>
+    </table>
+    <div class="meth-title">Key References</div>
+    <div class="meth-body">
+      <b>BA Fachkr&auml;fteengpassanalyse 2024:</b> 163 shortage occupations identified across 1,236 evaluated professions. All healthcare nursing, elderly care, and medical assistant categories are classified as Engpassberufe. Source: Bundesagentur f&uuml;r Arbeit, Statistik/Arbeitsmarktberichterstattung.<br><br>
+      <b>CEDEFOP 2023 Germany Skills Forecast:</b> Nursing and midwifery professionals classified as high-shortage occupations, driven primarily by replacement demand from a retiring workforce rather than sector growth. Source: European Centre for the Development of Vocational Training (cedefop.europa.eu).<br><br>
+      <b>BA/Prognos Nursing Projection:</b> A shortfall of up to 520,000 nurses projected by 2030 (Prognos AG, &ldquo;Pflegelandschaft 2030&rdquo;, commissioned by vbw &ndash; Vereinigung der Bayerischen Wirtschaft, 2012). Current unfilled posts estimated at 150,000 to 300,000. Long-term care demand projected to increase by 37% by 2055 (Destatis / GIZ). Sources: Prognos AG / vbw 2012; BA Press Release 2024-19.<br><br>
+      <b>Triple Win Programme:</b> Structured international placement programme operated by BA via ZAV (International Placement Services) in partnership with GIZ, targeting nurses from India (Kerala, Telangana) and the Philippines. More than 8,000 nurses from all Triple Win partner countries have been placed in Germany since 2013, with over 6,000 having arrived; employers cover language training and placement costs.
+    </div>
+  </div>
+</div>
+
+<div class="card card-b" style="margin-top:14px">
+  <div class="card-head">Methods &amp; Caveats</div>
+  <div style="font-size:12px;line-height:1.9;padding:0 14px 14px;color:#334">
+    <b>Source and collection.</b> Job postings scraped from StepStone Germany between 31 January and 10 March 2026. Only employers classified under ISIC healthcare sectors were included in the initial extraction.<br>
+    <b>Clinical vs. non-clinical.</b> Clinical healthcare roles (ISCO-08 groups 22, 32, 53) are the analytical scope; non-clinical support roles posted by healthcare employers are excluded from the analytical views.<br>
+    <b>Classification.</b> Each posting was classified by occupation (ISCO-08) and employer sector (ISIC Rev.4) using the Claude API with manual spot-checking. ISCO-4 names follow the official ILO unit-group titles.<br>
+    <b>Employer sectors.</b> Taken directly from the dataset's <i>Employer_Category</i> column and shown at the ISIC Rev.4 2-digit division level with official codes where the classified sheet provides them; the Classifications tab carries the full listing and reference guide.<br>
+    <b>On-site and visa signal.</b> Over 97% of clinical healthcare postings specify an on-site work requirement in Germany. Approximately 0.1% mention visa sponsorship, confirming a structural gap between market need and formal international recruitment infrastructure — the gap that GATI addresses.<br>
+    <b>Counts.</b> Every figure counts postings, not vacancies or hires. One posting can represent several openings.
+  </div>
+</div>

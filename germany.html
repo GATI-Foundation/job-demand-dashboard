@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GATI · Germany · Skills-Mobility Dashboards</title>
+  <meta name="description" content="Sector dashboards on Germany's labour-market demand, built for GATI's global skills-mobility work." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/base.css?v=20260725-2" />
+  <link rel="stylesheet" href="assets/css/landing.css?v=20260725-2" />
+</head>
+<body>
+  <header class="site-head">
+    <div class="wrap site-head__row">
+      <a class="brand" href="index.html" title="All countries">
+        <img class="brand__logo" src="assets/img/gati-logo.svg" alt="GATI" />
+        <span class="brand__sub">Skills-Mobility Data</span>
+      </a>
+      <nav class="site-nav">
+        <a href="https://gatifoundation.org/" target="_blank" rel="noopener">About GATI</a>
+        <a href="https://gatifoundation.org/resource-center" target="_blank" rel="noopener">Resource Center</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="wrap hero__inner">
+        <p class="eyebrow">Global Skills Mobility · Germany corridor</p>
+        <h1 class="hero__title">Where Germany is hiring, sector by sector.</h1>
+        <p class="hero__lede">
+          Standardised StepStone job-posting data, classified to ISCO-08 and mapped to
+          German states. Pick a sector to explore demand by occupation, employer type,
+          region and week.
+        </p>
+        <div class="hero__meta">
+          <span class="chip">StepStone.de</span>
+          <span class="chip">ISCO-08 classified</span>
+          <span class="chip chip--gold">Research · Design · Catalyse</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sector cards -->
+    <section class="wrap sectors">
+      <div class="sectors__head">
+        <h2>Choose a sector</h2>
+        <p class="muted">The landing counts come from tiny per-sector meta.json files; each dashboard reads the full CSV only when you open it.</p>
+      </div>
+      <div id="sector-grid" class="sector-grid" role="list">
+        <!-- cards injected by landing.js -->
+      </div>
+    </section>
+
+    <!-- Data note -->
+    <section class="wrap datanote">
+      <div class="card datanote__card">
+        <h3>How the data flows</h3>
+        <p class="muted">
+          Each sector card opens the same dashboard shell, pointed at that sector via
+          <code class="mono">dashboard.html?sector=&lt;id&gt;</code>. The dashboard fetches the sector's
+          clean CSV, builds the data model in the browser, and renders the charts — no server needed.
+          The CSV location is set once in <code class="mono">assets/js/sectors.js</code>.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <div class="wrap site-foot__row">
+      <div>
+        <img class="brand__logo brand__logo--foot" src="assets/img/gati-logo-white.svg" alt="GATI" />
+        <p class="muted" style="color:#B9CFCC;margin:.3rem 0 0;max-width:34ch">
+          Global Access to Talent from India — building the global skills-mobility ecosystem.
+        </p>
+      </div>
+      <div class="site-foot__links">
+        <a href="https://gatifoundation.org/">Website</a>
+        <a href="https://www.linkedin.com/company/gati-foundation/">LinkedIn</a>
+        <a href="mailto:info@gatifoundation.org">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="assets/js/sectors.js?v=20260725-2"></script>
+  <script src="assets/js/landing.js?v=20260725-2"></script>
+
+<!-- Back-to-top button -->
+<style>
+  #to-top{position:fixed;right:20px;bottom:22px;z-index:1200;width:44px;height:44px;border:none;
+    border-radius:50%;background:#0F5B5A;color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(15,46,46,.28);
+    display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transform:translateY(10px);
+    transition:opacity .25s ease, transform .25s ease, background .18s ease, box-shadow .18s ease}
+  #to-top.show{opacity:1;visibility:visible;transform:none}
+  #to-top:hover{background:#1A7B7A;box-shadow:0 8px 22px rgba(15,46,46,.36)}
+  #to-top:focus-visible{outline:2px solid #D4940A;outline-offset:2px}
+  #to-top svg{width:20px;height:20px;display:block}
+  @media (max-width:520px){#to-top{right:14px;bottom:16px;width:40px;height:40px}}
+</style>
+<button id="to-top" aria-label="Back to top" title="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
+<script>
+  (function(){
+    var btn=document.getElementById('to-top');
+    if(!btn) return;
+    function onScroll(){ (window.pageYOffset||document.documentElement.scrollTop)>300 ? btn.classList.add('show') : btn.classList.remove('show'); }
+    window.addEventListener('scroll',onScroll,{passive:true});
+    btn.addEventListener('click',function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+    onScroll();
+  })();
+</script>
+
+</body>
+</html>

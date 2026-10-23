@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GATI · Sector Demand Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<link rel="stylesheet" href="assets/css/dashboard.css?v=20260725-2">
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="hdr">
+  <div class="hdr-left">
+    <a class="hdr-back" href="germany.html" title="All dashboards" aria-label="Back to all dashboards">&larr;</a>
+    <div class="hdr-mark">
+      <img class="hdr-logo" src="assets/img/gati-logo.svg" alt="GATI" />
+    </div>
+    <div class="hdr-divider"></div>
+    <div class="hdr-title">
+      <span class="t1" id="hdr-t1">Sector Demand Intelligence</span>
+      <span class="t2" id="hdr-t2">German Labour Market · StepStone Germany</span>
+    </div>
+  </div>
+  <div class="hdr-filters">
+    <select id="hdr-switch" class="hdr-switch" onchange="switchSector(this.value)" title="Switch sector" aria-label="Switch sector"></select>
+    <select id="flt-state" onchange="applyFilters()" aria-label="Filter by state">
+      <option value="ALL">All States</option>
+    </select>
+    <select id="flt-isic" onchange="applyFilters()" aria-label="Filter by employer type">
+      <option value="ALL">All Employer Types</option>
+    </select>
+    <label><input type="checkbox" id="flt-genuine" checked onchange="applyFilters()"> Remove Duplicate Job IDs</label>
+    <label><input type="checkbox" id="flt-clearcat" checked onchange="applyFilters()"> Hide Unclear Employer Categories</label>
+    <label><input type="checkbox" id="flt-clearocc" checked onchange="applyFilters()"> Hide Unclassified Occupations</label>
+  </div>
+  <span id="filter-count"></span>
+</header>
+
+<!-- TAB NAV (Overview/Roles/Regional/Explorer fixed; static tabs appended by JS) -->
+<nav id="tab-nav">
+  <button class="tab-btn active" onclick="showTab('overview',this)">Overview</button>
+  <button class="tab-btn" onclick="showTab('context',this)">Market Context</button>
+  <button class="tab-btn" onclick="showTab('tiers',this)">Top Tiers</button>
+  <button class="tab-btn" onclick="showTab('roles',this)">Role Analysis</button>
+  <button class="tab-btn" onclick="showTab('regional',this)">Regional Map</button>
+  <button class="tab-btn" onclick="showTab('explorer',this)">Data Explorer</button>
+  <button class="tab-btn" onclick="showTab('classify',this)">Classifications</button>
+</nav>
+
+<!-- LOAD / ERROR STATUS -->
+<div id="db-status">
+  <div class="status-card">
+    <div class="spinner"></div>
+    <h2 id="status-title">Loading sector data…</h2>
+    <p id="status-msg">Fetching and classifying postings.</p>
+  </div>
+</div>
+
+<!-- ====== OVERVIEW ====== -->
+<section id="tab-overview" class="tab-panel active" hidden>
+  <div class="data-banner" id="data-banner"></div>
+
+  <div class="filter-box" id="genuine-explain">
+    <b>Duplicate filter (enabled by default):</b> Every job posting is counted as its own post. This filter only removes rows that carry the <i>exact same Job ID</i> more than once — a scraping artifact, not a real second posting. In the current datasets every Job ID is unique, so no postings are removed and the filter has no effect on the numbers.
+    <br><b>Unclear-category filter (on by default):</b> Hides postings whose employer category could not be confidently determined — rows where the classifier's <i>Employer_Category_Confidence_Level</i> is Low, or the category is empty or marked unclear. Turn it on for a stricter view of employer demand.
+    <br><b>Unclassified-occupation filter (on by default):</b> Hides postings that carry no ISCO-08 occupation — rows whose <i>ISCO_4_name</i> is "Unclassified". These are typically non-clinical or off-sector jobs the occupation classifier declined to code. Turn it off to inspect them.
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="kpi-total"></div></div>
+    <div class="kpi-card"><div class="kpi-accent" style="background:#D4940A"></div><div class="kpi-body" id="kpi-lead"></div></div>
+    <div class="kpi-card"><div class="kpi-accent" style="background:#2D9B9A"></div><div class="kpi-body" id="kpi-parttime"></div></div>
+    <div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="kpi-geo"></div></div>
+  </div>
+
+  <div id="ov-alert" class="alert-box"></div>
+
+  <div class="card card-t">
+    <div class="card-head">Top 10 Roles by Demand Share</div>
+    <div class="card-sub">These are the most-advertised occupations, shown as a percentage of all postings and given the full card width so every occupation name is readable. Hover any bar for the exact posting count.</div>
+    <div class="card-body"><div id="chart-top10"></div></div>
+  </div>
+
+  <div class="card card-g" style="margin-top:14px">
+    <div class="card-head">Who Hires Each Workforce Group?</div>
+    <div class="card-sub">A percentage grid across the full card width: each row is one of the leading occupations, each column an employer sector, and each cell shows what share of that occupation's postings the sector accounts for. Hover any cell for the exact count.</div>
+    <div class="card-body"><div id="chart-cross"></div></div>
+  </div>
+
+  <div class="card card-t" style="margin-top:14px">
+    <div class="card-head">Weekly Posting Volume</div>
+    <div class="card-sub">This tracks how many postings appeared each week for the largest workforce groups across the collection window. Hover anywhere on the chart to compare every group for that week at once.</div>
+    <div class="card-body"><div id="chart-trend" style="height:260px"></div></div>
+  </div>
+
+  <div class="card card-g" style="margin-top:14px">
+    <div class="card-head">Who Is Hiring?</div>
+    <div class="card-sub">The ten largest employer sectors by demand, each measured as a percentage of all postings, with the full card width so every sector name is readable. The Data Explorer tab carries the full sector list and a guide to what each category includes.</div>
+    <div class="card-body"><div id="chart-isic"></div></div>
+  </div>
+
+  <div class="card card-t" style="margin-top:14px">
+    <div class="card-head">Regions ranked by posting volume</div>
+    <div class="card-sub">The ten German states holding the most postings in the current selection, so the geography of demand is visible at a glance. The Top Tiers tab carries the full regional analysis.</div>
+    <div class="card-body"><div id="ov-region-pareto" style="height:280px"></div></div>
+  </div>
+</section>
+
+<!-- ====== MARKET CONTEXT ====== -->
+<section id="tab-context" class="tab-panel" hidden>
+  <div class="insight-box">
+    <b>Where the demand sits.</b> This view connects the three most important dimensions: which states are hiring, which specific ISCO-4 occupations they want, and what that demand represents in percentage terms. All filters apply.
+  </div>
+
+  <div class="grid-2" style="margin-bottom:14px">
+    <div class="card card-t">
+      <div class="card-head">Top states and their leading occupations</div>
+      <div class="card-sub">The postings in each leading state, grouped by the four-digit ISCO occupations that state is hiring for. Hover any section to read the exact occupation name and posting count.</div>
+      <div class="card-body"><div id="ctx-state-occ" style="height:420px"></div></div>
+    </div>
+    <div class="card card-g">
+      <div class="card-head">Top occupations and where they sit</div>
+      <div class="card-sub">The leading ISCO-4 occupations, with bars showing how the demand for each spreads across states. A short bar means that occupation is concentrated in one or two places; a long bar means it appears nationwide.</div>
+      <div class="card-body"><div id="ctx-occ-states" style="height:420px"></div></div>
+    </div>
+  </div>
+
+  <div class="card card-b" style="margin-bottom:14px">
+    <div class="card-head">Which states need which occupations — the full picture</div>
+    <div class="card-sub">Every state is a row, every leading ISCO-4 occupation is a column. The cell value is the number of postings that state has for that occupation. Darker cells mean more demand; empty cells mean zero postings for that state-occupation pair.</div>
+    <div class="card-body"><div id="ctx-matrix" style="height:520px"></div></div>
+  </div>
+
+  <div class="card card-t">
+    <div class="card-head">Market summary table</div>
+    <div class="card-sub">A condensed view of the entire market: each row is a state, showing its postings, share of national demand, top occupation in that state, and the employer sector that leads there.</div>
+    <div class="tbl-wrap" id="ctx-summary-table"></div>
+  </div>
+</section>
+
+<!-- ====== TOP TIERS ====== -->
+<section id="tab-tiers" class="tab-panel" hidden>
+  <div class="insight-box" id="tier-intro"></div>
+
+  <div class="tier-bar">
+    <span class="tier-lbl">Show the top</span>
+    <div class="tier-seg" id="tier-n">
+      <button class="active" onclick="setTierN(10,this)">10</button>
+      <button onclick="setTierN(20,this)">20</button>
+    </div>
+    <span class="tier-lbl">ranked entries. Every header filter still applies, and each chart can be exported from the button in its top-right corner.</span>
+  </div>
+
+  <div class="sub-tab-nav">
+    <button class="sub-btn active" onclick="showTierView('occ',this)">Occupations (ISCO-4)</button>
+    <button class="sub-btn" onclick="showTierView('title',this)">Advertised Job Titles</button>
+    <button class="sub-btn" onclick="showTierView('region',this)">Regions</button>
+    <button class="sub-btn" onclick="showTierView('employer',this)">Employers</button>
+    <button class="sub-btn" onclick="showTierView('sector',this)">Employer Sectors (ISIC-2)</button>
+  </div>
+
+  <!-- OCCUPATIONS -->
+  <div id="tv-occ" class="sub-panel active">
+<div class="kpi-row"><div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="tocc-k1"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="tocc-k2"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="tocc-k3"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="tocc-k4"></div></div></div>
+    <div class="card card-t" style="margin-bottom:14px">
+      <div class="card-head">Ranked occupations at the four-digit ISCO level</div>
+      <div class="card-sub">These are the specific unit groups being advertised, ranked by the number of postings. Each bar is labelled with its official ISCO-4 code so the ranking can be carried straight into a policy or training document.</div>
+      <div class="card-body"><div id="tier-occ-bar"></div></div>
+    </div>
+    <div class="card card-g" style="margin-bottom:14px">
+      <div class="card-head">Who employs each of the leading occupations?</div>
+      <div class="card-sub">The same ranked occupations, split by the employer sectors advertising them. This shows immediately whether an occupation is hired directly by hotels, restaurants or transport firms, or predominantly through staffing agencies.</div>
+      <div class="card-body"><div id="tier-occ-sector"></div></div>
+    </div>
+    <div class="card card-b">
+      <div class="card-head">Full ranked table of occupations</div>
+      <div class="card-sub">The same ranking in tabular form, including the leading employer sector and the leading region for each occupation.</div>
+      <div class="tbl-wrap" id="tier-occ-table"></div>
+    </div>
+  </div>
+
+  <!-- JOB TITLES -->
+  <div id="tv-title" class="sub-panel">
+<div class="kpi-row"><div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="ttit-k1"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="ttit-k2"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="ttit-k3"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="ttit-k4"></div></div></div>
+    <div class="card card-b">
+      <div class="card-head">Full ranked table of advertised job titles</div>
+      <div class="card-sub">Each advertised title with the number of postings, the ISCO-4 occupation it was classified into, and the employer sector that advertises it most often.</div>
+      <div class="tbl-wrap" id="tier-title-table"></div>
+    </div>
+  </div>
+
+  <!-- REGIONS -->
+  <div id="tv-region" class="sub-panel">
+<div class="kpi-row"><div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="treg-k1"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="treg-k2"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="treg-k3"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="treg-k4"></div></div></div>
+    <div class="card card-t" style="margin-bottom:14px">
+      <div class="card-head">Regions ranked by posting volume</div>
+      <div class="card-sub">Every region carrying location data, ranked by how many postings it holds, so you can see at a glance how much of national demand the leading regions represent.</div>
+      <div class="card-body"><div id="tier-region-pareto" style="height:340px"></div></div>
+    </div>
+    <div class="card card-g" style="margin-bottom:14px">
+      <div class="card-head">What each leading region actually demands</div>
+      <div class="card-sub">The leading occupations within each of the top regions, drawn as grouped bars. This is the view to use when deciding which occupation to prepare candidates for in a specific state.</div>
+      <div class="card-body"><div id="tier-region-mix" style="height:420px"></div></div>
+    </div>
+    <div class="card card-b">
+      <div class="card-head">Full ranked table of regions</div>
+      <div class="card-sub">Each region with its posting count, its share of national demand, and the occupation and employer sector that lead within it.</div>
+      <div class="tbl-wrap" id="tier-region-table"></div>
+    </div>
+  </div>
+
+  <!-- EMPLOYERS -->
+  <div id="tv-employer" class="sub-panel">
+<div class="kpi-row"><div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="temp-k1"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="temp-k2"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="temp-k3"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="temp-k4"></div></div></div>
+    <div class="card card-t" style="margin-bottom:14px">
+      <div class="card-head">Employers ranked by number of postings</div>
+      <div class="card-sub">Named organisations advertising the most roles, coloured by the employer sector they belong to. These are the concrete counterparties a placement partnership would need to approach.</div>
+      <div class="card-body"><div id="tier-emp-bar"></div></div>
+    </div>
+    <div class="card card-b">
+      <div class="card-head">Full ranked table of employers</div>
+      <div class="card-sub">Each employer with its posting count, its share of demand, its sector, and the occupation and region it recruits for most.</div>
+      <div class="tbl-wrap" id="tier-emp-table"></div>
+    </div>
+  </div>
+
+  <!-- SECTORS -->
+  <div id="tv-sector" class="sub-panel">
+<div class="kpi-row"><div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="tsec-k1"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="tsec-k2"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="tsec-k3"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="tsec-k4"></div></div></div>
+    <div class="card card-t" style="margin-bottom:14px">
+      <div class="card-head">Employer sectors ranked by posting volume</div>
+      <div class="card-sub">Which kinds of organisation are generating demand, ranked by their number of postings and shown with their share of the sector total.</div>
+      <div class="card-body"><div id="tier-sector-bar"></div></div>
+    </div>
+    <div class="card card-g" style="margin-bottom:14px">
+      <div class="card-head">Where each employer sector recruits</div>
+      <div class="card-sub">The regional footprint of every employer sector, row-normalised so each row shows how that sector spreads its own demand across regions rather than how large the sector is.</div>
+      <div class="card-body"><div id="tier-sector-geo" style="height:420px"></div></div>
+    </div>
+    <div class="card card-b">
+      <div class="card-head">Full ranked table of employer sectors</div>
+      <div class="card-sub">Each employer sector with its posting count, its share of demand, the number of distinct employers it contains, and the occupation and region that lead within it.</div>
+      <div class="tbl-wrap" id="tier-sector-table"></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ====== ROLE ANALYSIS ====== -->
+<section id="tab-roles" class="tab-panel" hidden>
+  <div class="sub-tab-nav" id="role-sub-nav"><!-- role buttons injected --></div>
+  <div id="role-panels"><!-- role panels injected --></div>
+</section>
+
+<!-- ====== REGIONAL MAP ====== -->
+<section id="tab-regional" class="tab-panel" hidden>
+  <div class="insight-box" id="geo-insight">Loading geographic data…</div>
+  <div class="grid-map">
+    <div class="card card-t" style="overflow:hidden">
+      <div class="card-head" id="map-head">Vacancies Across Germany</div>
+      <div class="card-sub">Darker states carry more vacancies. Hover any state to read its leading occupations and its largest employer sector.</div>
+      <div id="geo-map"></div>
+    </div>
+    <div class="card card-g">
+      <div class="card-head">States Ranked by Demand</div>
+      <div class="card-sub">Every region that carries state-level location data, ranked by its share of postings.</div>
+      <div class="card-body"><div id="chart-states" style="height:460px"></div></div>
+    </div>
+  </div>
+  <div class="card card-b">
+    <div class="card-head">Full State Breakdown</div>
+    <div class="card-sub">Every state sorted by posting volume, with its leading employer sector and share of national demand.</div>
+    <div class="tbl-wrap" id="state-table"></div>
+  </div>
+</section>
+
+<!-- ====== DATA EXPLORER ====== -->
+<section id="tab-explorer" class="tab-panel" hidden>
+  <div class="note-box" id="explorer-note">
+    This is the raw posting-level data behind every chart in the dashboard, and all of the header filters for state, employer type and duplicate Job IDs apply to it. Each row is a single job posting. Long description, requirement and benefit text is shortened to three lines to keep the table readable, and the complete text appears when you hover over the cell; the original listing is always one click away through the link in the final column.
+  </div>
+  <div class="card card-b">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="card-head" style="padding:0">Full Posting-Level Data</div>
+        <div class="card-sub" style="padding:0;margin-top:2px">Every individual posting with its title, date, description, requirements and original link, shown 50 rows to a page. Long text is shortened to three lines and opens in full when you hover over it.</div>
+      </div>
+      <div>
+        <input id="exp-search" type="text" placeholder="Search by title, state or occupation..." oninput="explorerSearch()" style="padding:5px 10px;border:1px solid #D4E5E5;border-radius:6px;font-size:11px;font-family:Outfit,sans-serif;width:240px;outline:none">
+      </div>
+    </div>
+    <div class="tbl-wrap" id="explorer-full"></div>
+    <div id="explorer-nav" style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid #D4E5E5;font-size:11px"></div>
+  </div>
+</section>
+
+<!-- ====== CLASSIFICATIONS (ISCO-4 occupations, ISIC-2 sectors, by region) ====== -->
+<section id="tab-classify" class="tab-panel" hidden>
+  <div class="insight-box">
+    <b>Standardised classifications.</b> Postings are classified two ways: by occupation at the 4-digit <b>ISCO-08 unit-group (ISCO-4)</b> level, and by employer sector at the 2-digit <b>ISIC Rev.4 division (ISIC-2)</b> level. The <b>ISCO-4 Occupations</b> and <b>Employer Sectors (ISIC-2)</b> sub-tabs each carry a ranked chart and a full code-labelled listing; <b>By Region</b> breaks occupational demand down by state. All header filters apply.
+  </div>
+
+  <div class="sub-tab-nav">
+    <button class="sub-btn active" onclick="showClassView('national',this)">ISCO-4 Occupations</button>
+    <button class="sub-btn" onclick="showClassView('sectors',this)">Employer Sectors (ISIC-2)</button>
+    <button class="sub-btn" onclick="showClassView('region',this)">By Region</button>
+  </div>
+
+  <!-- ---- NATIONAL ---- -->
+  <div id="cv-national" class="sub-panel active">
+    <div class="kpi-row" style="margin-bottom:14px">
+      <div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="cls-k1"></div></div>
+      <div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="cls-k2"></div></div>
+      <div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="cls-k3"></div></div>
+      <div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="cls-k4"></div></div>
+    </div>
+    <div class="card card-g" style="margin-bottom:14px">
+      <div class="card-head">ISCO-4 · Unit Groups</div>
+      <div class="card-sub">The four-digit ISCO-08 unit groups, ranked by their share of postings. This is the most specific level the classifier assigns and the primary level of this analysis.</div>
+      <div class="card-body"><div id="isco4-chart"></div></div>
+      <div class="tbl-wrap" id="isco4-table"></div>
+    </div>
+    <div class="card card-t" style="margin-bottom:14px">
+      <div class="card-head">Occupation Summary (ISCO-4 Level)</div>
+      <div class="card-sub">An aggregate view giving the posting count, the share open to part-time work, the leading employer sector and the leading state for each occupational group.</div>
+      <div class="tbl-wrap" id="explorer-table"></div>
+    </div>
+
+
+  </div>
+
+  <!-- ---- EMPLOYER SECTORS (ISIC-2) ---- -->
+  <div id="cv-sectors" class="sub-panel">
+    <div class="card card-t" style="margin-bottom:14px">
+      <div class="card-head">Employer Sectors · ISIC-2 Level</div>
+      <div class="card-sub">Employer sectors as named in the dataset's Employer_Category column, ranked and then fully listed with their official 2-digit ISIC Rev.4 codes — the sector counterpart to the ISCO-4 listing above.</div>
+      <div class="card-body"><div id="sector-chart"></div></div>
+      <div class="tbl-wrap" id="sector-table"></div>
+    </div>
+
+    <div class="card card-g" style="margin-bottom:14px">
+      <div class="card-head">Employer Sector Summary (ISIC-2 Level)</div>
+      <div class="card-sub">The same aggregate view for employer sectors, each with its official ISIC-2 code, posting count, share open to part-time work, the leading occupation it hires, and its leading state.</div>
+      <div class="tbl-wrap" id="explorer-isic-table"></div>
+    </div>
+    <div class="card card-b">
+      <div class="card-head">Employer Sector Reference Guide</div>
+      <div class="card-sub">What kind of businesses sit within each ISIC Rev.4 category, so figures like "Accommodation" can be read correctly — it covers hotels, motels, inns, guesthouses and hostels. Sectors are listed by posting volume in the current data.</div>
+      <div class="tbl-wrap" id="explorer-isic-guide"></div>
+    </div>
+  </div>
+
+  <!-- ---- BY REGION ---- -->
+  <div id="cv-region" class="sub-panel">
+    <div class="card card-t" style="margin-bottom:14px">
+      <div class="card-head">Occupational Demand by Region · ISCO-4 Level</div>
+      <div class="card-sub">Every federal state with its posting volume, national share, and the three ISCO-4 occupations it demands most, each with its share of that state's own postings.</div>
+      <div class="tbl-wrap" id="cls-region-table"></div>
+    </div>
+
+    <div class="card card-b" style="margin-bottom:14px">
+      <div class="card-head">Regional Concentration · Where Each Occupation Sits</div>
+      <div class="card-sub">For each leading ISCO-4 occupation: how many states carry it, which state leads, and what share of the occupation's postings that single state holds. A high share means demand is geographically concentrated rather than spread nationally.</div>
+      <div class="tbl-wrap" id="cls-conc-table"></div>
+    </div>
+
+    <div class="card card-g">
+      <div class="card-head">Classification Profile of a Single Region</div>
+      <div class="card-sub">Choose a region to see its complete occupational breakdown at both ISCO levels, with every share calculated against that region's own total.</div>
+      <div class="card-body" style="padding-top:12px">
+        <div class="filter-box" style="margin-bottom:12px">
+          <label for="cls-state">Region</label>
+          <select id="cls-state" onchange="renderRegionProfile()"></select>
+        </div>
+        <div class="grid-2">
+          <div><div class="card-head" style="padding-left:0">ISCO-4 in this region</div><div class="tbl-wrap" id="cls-rp-isco4"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== STATIC (per-sector) TABS mount here ====== -->
+<div id="static-tabs"><!-- About/Methods, Qualifications etc. injected from /content --></div>
+
+<footer id="footer">
+  GATI Foundation · <span id="foot-sector">Sector</span> Labour Market Intelligence · Data: StepStone Germany · Classification: ISCO-08 (ILO), employer sector (ISIC Rev.4) · Build 20260725-2
+</footer>
+
+<script src="assets/js/sectors.js?v=20260725-2"></script>
+<script src="assets/js/data-loader.js?v=20260725-2"></script>
+<script src="assets/js/requirements-extractor.js?v=20260725-2"></script>
+<script src="assets/js/role-meta.js?v=20260725-2"></script>
+<script src="assets/js/chart-kit.js?v=20260725-2"></script>
+<script src="assets/js/dashboard.js?v=20260725-2"></script>
+
+<!-- Back-to-top button -->
+<style>
+  #to-top{position:fixed;right:20px;bottom:22px;z-index:1200;width:44px;height:44px;border:none;
+    border-radius:50%;background:#0F5B5A;color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(15,46,46,.28);
+    display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transform:translateY(10px);
+    transition:opacity .25s ease, transform .25s ease, background .18s ease, box-shadow .18s ease}
+  #to-top.show{opacity:1;visibility:visible;transform:none}
+  #to-top:hover{background:#1A7B7A;box-shadow:0 8px 22px rgba(15,46,46,.36)}
+  #to-top:focus-visible{outline:2px solid #D4940A;outline-offset:2px}
+  #to-top svg{width:20px;height:20px;display:block}
+  @media (max-width:520px){#to-top{right:14px;bottom:16px;width:40px;height:40px}}
+</style>
+<button id="to-top" aria-label="Back to top" title="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
+<script>
+  (function(){
+    var btn=document.getElementById('to-top');
+    if(!btn) return;
+    function onScroll(){ (window.pageYOffset||document.documentElement.scrollTop)>300 ? btn.classList.add('show') : btn.classList.remove('show'); }
+    window.addEventListener('scroll',onScroll,{passive:true});
+    btn.addEventListener('click',function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+    onScroll();
+  })();
+</script>
+
+
+<!-- ============================================================
+     GATI AI PANEL — "Ask the data"
+     Floating Gemini-style button + slide-up chat drawer.
+     Context is built from live dashboard state, never raw CSV.
+     ============================================================ -->
+<style>
+/* ---------- FAB (floating action button) ---------- */
+#ai-fab{
+  position:fixed;bottom:76px;right:20px;z-index:1100;
+  display:flex;align-items:center;gap:9px;
+  background:#fff;border:none;border-radius:999px;
+  padding:10px 16px 10px 12px;
+  box-shadow:0 4px 20px rgba(15,46,46,.18),0 1px 4px rgba(15,46,46,.12);
+  cursor:pointer;
+  animation:fabIn .6s 1.2s cubic-bezier(.2,.8,.3,1) both;
+  transition:box-shadow .2s,transform .15s}
+@keyframes fabIn{from{opacity:0;transform:translateY(18px) scale(.9)}to{opacity:1;transform:none}}
+#ai-fab:hover{box-shadow:0 6px 26px rgba(15,46,46,.26);transform:translateY(-1px)}
+#ai-fab:active{transform:scale(.97)}
+#ai-fab.open{display:none}
+/* Gemini rainbow shimmer on the icon */
+.ai-gem{width:26px;height:26px;flex-shrink:0;animation:gemSpin 6s linear infinite}
+@keyframes gemSpin{to{filter:hue-rotate(360deg)}}
+.ai-fab-label{font:600 12.5px 'Outfit',sans-serif;color:#0F5B5A;letter-spacing:.01em;white-space:nowrap}
+
+/* ---------- DRAWER ---------- */
+#ai-drawer{
+  position:fixed;bottom:0;right:0;z-index:1099;
+  width:min(420px,100vw);
+  background:#fff;border-radius:18px 18px 0 0;
+  box-shadow:0 -4px 32px rgba(15,46,46,.18);
+  display:flex;flex-direction:column;
+  max-height:0;overflow:hidden;
+  transition:max-height .35s cubic-bezier(.4,0,.2,1)}
+#ai-drawer.open{max-height:560px}
+#ai-drawer-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 12px;border-bottom:1px solid #E4EEEE;flex-shrink:0}
+.ai-drawer-title{display:flex;align-items:center;gap:8px;
+  font:600 13.5px 'Outfit',sans-serif;color:#0F2E2E}
+#ai-close{background:none;border:none;cursor:pointer;color:#7A9C9C;
+  font-size:20px;line-height:1;padding:2px 4px;border-radius:6px}
+#ai-close:hover{background:#EAF4F4;color:#0F5B5A}
+#ai-messages{
+  flex:1;overflow-y:auto;padding:14px 16px;
+  display:flex;flex-direction:column;gap:10px;min-height:0}
+/* message bubbles */
+.ai-msg{max-width:88%;font-size:12.5px;line-height:1.65;border-radius:12px;padding:9px 13px;
+  animation:msgIn .25s ease both}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ai-msg.user{align-self:flex-end;background:#0F5B5A;color:#fff;border-bottom-right-radius:3px}
+.ai-msg.ai{align-self:flex-start;background:#F0F7F7;color:#0F2E2E;border-bottom-left-radius:3px}
+.ai-msg.ai b{color:#0F5B5A}
+/* typing indicator */
+.ai-typing{align-self:flex-start;display:flex;gap:4px;padding:10px 14px;
+  background:#F0F7F7;border-radius:12px 12px 12px 3px}
+.ai-typing span{width:6px;height:6px;border-radius:50%;background:#7A9C9C;
+  animation:dot .9s infinite both}
+.ai-typing span:nth-child(2){animation-delay:.18s}
+.ai-typing span:nth-child(3){animation-delay:.36s}
+@keyframes dot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+/* suggested chips */
+#ai-chips{padding:0 16px 10px;display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0}
+.ai-chip{font:500 11px 'Outfit',sans-serif;color:#0F5B5A;background:#EAF4F4;
+  border:1px solid #C4DFE0;border-radius:999px;padding:4px 11px;cursor:pointer;
+  transition:background .15s,border-color .15s;white-space:nowrap}
+.ai-chip:hover{background:#D4EEF0;border-color:#1A7B7A}
+/* input row */
+#ai-input-row{display:flex;gap:8px;padding:10px 14px 14px;flex-shrink:0;border-top:1px solid #E4EEEE}
+#ai-input{flex:1;border:1.5px solid #C4DFE0;border-radius:10px;padding:8px 12px;
+  font:400 12.5px 'Outfit',sans-serif;color:#0F2E2E;resize:none;min-height:38px;max-height:96px;
+  outline:none;transition:border-color .18s}
+#ai-input:focus{border-color:#0F5B5A}
+#ai-send{width:38px;height:38px;border:none;border-radius:10px;cursor:pointer;flex-shrink:0;
+  background:#0F5B5A;color:#fff;display:flex;align-items:center;justify-content:center;
+  transition:background .18s,transform .12s}
+#ai-send:hover{background:#1A7B7A}
+#ai-send:active{transform:scale(.93)}
+#ai-send svg{width:17px;height:17px}
+/* inline chart from AI */
+.ai-chart-box{width:100%;margin-top:8px;border-radius:8px;overflow:hidden;background:#fff;
+  border:1px solid #D4E5E5}
+</style>
+
+<!-- Floating button -->
+<button id="ai-fab" aria-label="Ask the data" title="Ask the data">
+  <svg class="ai-gem" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="gem1" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#4285F4"/>
+        <stop offset="33%" stop-color="#9B72CB"/>
+        <stop offset="66%" stop-color="#D96570"/>
+        <stop offset="100%" stop-color="#F4B400"/>
+      </linearGradient>
+    </defs>
+    <path d="M14 3C14 3 7 10.5 7 15.5C7 19.09 10.13 22 14 22C17.87 22 21 19.09 21 15.5C21 10.5 14 3 14 3Z" fill="url(#gem1)" opacity="0.9"/>
+    <path d="M14 8C14 8 10 13 10 16C10 18.21 11.79 20 14 20C16.21 20 18 18.21 18 16C18 13 14 8 14 8Z" fill="white" opacity="0.5"/>
+  </svg>
+  <span class="ai-fab-label">Ask the data</span>
+</button>
+
+<!-- Drawer -->
+<div id="ai-drawer" role="dialog" aria-label="AI data assistant">
+  <div id="ai-drawer-head">
+    <div class="ai-drawer-title">
+      <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
+        <defs><linearGradient id="gem2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#4285F4"/><stop offset="100%" stop-color="#D96570"/>
+        </linearGradient></defs>
+        <path d="M14 3C14 3 7 10.5 7 15.5C7 19.09 10.13 22 14 22C17.87 22 21 19.09 21 15.5C21 10.5 14 3 14 3Z" fill="url(#gem2)"/>
+      </svg>
+      Ask the data
+      <span style="font-weight:400;color:#7A9C9C;font-size:11px;margin-left:4px">powered by Gemini</span>
+    </div>
+    <button id="ai-close" aria-label="Close">&#x2715;</button>
+  </div>
+  <div id="ai-messages"></div>
+  <div id="ai-chips"></div>
+  <div id="ai-input-row">
+    <textarea id="ai-input" rows="1" placeholder="Ask anything about this data…" aria-label="Your question"></textarea>
+    <button id="ai-send" aria-label="Send">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var fab    = document.getElementById('ai-fab');
+  var drawer = document.getElementById('ai-drawer');
+  var msgs   = document.getElementById('ai-messages');
+  var chips  = document.getElementById('ai-chips');
+  var input  = document.getElementById('ai-input');
+  var send   = document.getElementById('ai-send');
+  var close  = document.getElementById('ai-close');
+  var history = [];   /* [{role,text}] for multi-turn */
+
+  /* ---- open / close ---- */
+  function openDrawer(){
+    fab.classList.add('open');
+    drawer.classList.add('open');
+    if(!msgs.children.length) addGreeting();
+    input.focus();
+  }
+  function closeDrawer(){
+    drawer.classList.remove('open');
+    fab.classList.remove('open');
+  }
+  fab.addEventListener('click', openDrawer);
+  close.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeDrawer(); });
+
+  /* ---- greeting + suggested chips ---- */
+  function addGreeting(){
+    var sector = (APP && APP.sector && APP.sector.label) || 'this sector';
+    addMsg('ai', 'Hi! I can answer questions about the <b>'+esc(sector)+'</b> data currently on screen — occupations, employer sectors, regions, visa signals. What would you like to know?');
+    var suggestions = [
+      'What are the top 3 occupations?',
+      'Which state has the most demand?',
+      'Show a chart of top employer sectors',
+      'What is the visa signal rate?',
+      'Summarise this for a policy brief'
+    ];
+    chips.innerHTML = suggestions.map(function(s){
+      return '<button class="ai-chip">'+esc(s)+'</button>';
+    }).join('');
+    chips.querySelectorAll('.ai-chip').forEach(function(c){
+      c.addEventListener('click', function(){ ask(this.textContent); });
+    });
+  }
+
+  /* ---- message rendering ---- */
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function addMsg(role, html){
+    var d=document.createElement('div');
+    d.className='ai-msg '+role;
+    d.innerHTML=html;
+    msgs.appendChild(d);
+    msgs.scrollTop=msgs.scrollHeight;
+    return d;
+  }
+  function addTyping(){
+    var d=document.createElement('div');
+    d.className='ai-typing'; d.id='ai-typing';
+    d.innerHTML='<span></span><span></span><span></span>';
+    msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+    return d;
+  }
+
+  /* ---- build context from live dashboard state ---- */
+  function buildContext(){
+    if(!window.DATA || !window.APP) return {};
+    var rows  = window.getRows ? getRows() : DATA.rows;
+    var total = rows.length;
+
+    /* top occupations */
+    var occC={};
+    rows.forEach(function(r){ if(r[4]>=0){ var n=DATA.lookup.isco4[r[4]]; occC[n]=(occC[n]||0)+1; } });
+    var topOcc=Object.entries(occC).sort(function(a,b){return b[1]-a[1];}).slice(0,8)
+      .map(function(e){ return {name:e[0], count:e[1], pct:+(e[1]/total*100).toFixed(1)}; });
+
+    /* top sectors */
+    var secC={};
+    rows.forEach(function(r){ if(r[1]>=0){ var n=DATA.lookup.isic[r[1]]; secC[n]=(secC[n]||0)+1; } });
+    var topSec=Object.entries(secC).sort(function(a,b){return b[1]-a[1];}).slice(0,8)
+      .map(function(e){ return {name:e[0], count:e[1], pct:+(e[1]/total*100).toFixed(1)}; });
+
+    /* top states */
+    var stC={};
+    rows.forEach(function(r){ if(r[0]>=0){ var n=DATA.lookup.states[r[0]]; stC[n]=(stC[n]||0)+1; } });
+    var topSt=Object.entries(stC).sort(function(a,b){return b[1]-a[1];}).slice(0,6)
+      .map(function(e){ return {name:e[0], count:e[1], pct:+(e[1]/total*100).toFixed(1)}; });
+
+    /* visa signal (from cached REQX if available) */
+    var visaSig = DATA._reqx ? (function(){
+      var total_v=0, withSig=0;
+      Object.keys(DATA._reqx.agg||{}).forEach(function(o){
+        var a=DATA._reqx.agg[o]; total_v+=a.total||0; withSig+=a.anyVisa||0;
+      });
+      return total_v ? +(withSig/total_v*100).toFixed(1) : null;
+    })() : null;
+
+    return {
+      sector:   APP.sector ? APP.sector.label : '',
+      dateRange: DATA.meta ? DATA.meta.dateRange : '',
+      filters: {
+        state: APP.filterState||'ALL',
+        isic:  APP.filterIsic||'ALL'
+      },
+      totalPostings: total,
+      topOccupations: topOcc,
+      topEmployerSectors: topSec,
+      topStates: topSt,
+      visaSignalPct: visaSig,
+      activeTab: APP.activeTab || ''
+    };
+  }
+
+  /* ---- parse chart spec from AI response ---- */
+  function parseChart(text){
+    var m = text.match(/```chart\s*([\s\S]*?)```/);
+    if(!m) return null;
+    try { return JSON.parse(m[1].trim()); } catch(e){ return null; }
+  }
+  function renderChart(spec, container){
+    if(typeof Plotly === 'undefined') return;
+    var el = document.createElement('div');
+    el.className = 'ai-chart-box';
+    el.style.height = '200px';
+    container.appendChild(el);
+    var pal = { teal:'#0F5B5A', gold:'#C98A0B', multi:['#0F5B5A','#C98A0B','#2D9B9A','#7A5C9C','#C4626A','#5B7C8D'] };
+    var color = typeof pal[spec.color]==='string' ? pal[spec.color] : (pal.multi);
+    var trace;
+    if(spec.type === 'pie'){
+      trace = { type:'pie', labels:spec.labels, values:spec.values,
+        marker:{ colors: pal.multi }, hole:0.35 };
+    } else if(spec.type === 'line'){
+      trace = { type:'scatter', mode:'lines+markers', x:spec.labels, y:spec.values,
+        line:{ color:pal.teal, width:2 }, marker:{ color:pal.teal, size:5 } };
+    } else if(spec.type === 'horizontal_bar'){
+      trace = { type:'bar', orientation:'h', y:spec.labels, x:spec.values,
+        marker:{ color: Array.isArray(color)?color[0]:color } };
+    } else {
+      trace = { type:'bar', x:spec.labels, y:spec.values,
+        marker:{ color: Array.isArray(color)?color:color } };
+    }
+    Plotly.newPlot(el, [trace], {
+      paper_bgcolor:'transparent', plot_bgcolor:'transparent',
+      margin:{l:8,r:8,t:spec.title?32:10,b:8},
+      title: spec.title ? { text:spec.title, font:{size:11,family:'Outfit',color:'#0F2E2E'} } : undefined,
+      font:{ family:'Outfit', size:10 },
+      showlegend: spec.type==='pie',
+      xaxis:{ automargin:true, tickfont:{size:9} },
+      yaxis:{ automargin:true, tickfont:{size:9} }
+    }, { displayModeBar:false, responsive:true });
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  /* ---- stream a question ---- */
+  function ask(question){
+    if(!question.trim()) return;
+    chips.innerHTML = '';
+    addMsg('user', esc(question));
+    history.push({ role:'user', text:question });
+    input.value = '';
+    input.style.height = '';
+    var typing = addTyping();
+    send.disabled = true;
+
+    fetch('/api/ask', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ question:question, context:buildContext(), history:history.slice(-8) })
+    }).then(function(res){
+      if(!res.ok){ typing.remove(); addMsg('ai','Sorry, I couldn\'t reach the AI right now. Try again in a moment.'); send.disabled=false; return; }
+      var reader = res.body.getReader();
+      var decoder = new TextDecoder();
+      var buf = '', fullText = '';
+      var bubble = null;
+      typing.remove();
+
+      function pump(){
+        reader.read().then(function(d){
+          if(d.done){
+            send.disabled = false;
+            history.push({ role:'model', text:fullText });
+            /* check for chart spec */
+            var spec = parseChart(fullText);
+            if(spec && bubble){
+              /* strip the code block from bubble, render chart below */
+              bubble.innerHTML = esc(fullText.replace(/```chart[\s\S]*?```/,'').trim()) || '&nbsp;';
+              renderChart(spec, bubble);
+            }
+            return;
+          }
+          buf += decoder.decode(d.value, {stream:true});
+          var lines = buf.split('\n');
+          buf = lines.pop();
+          lines.forEach(function(line){
+            if(!line.startsWith('data: ')) return;
+            var data = line.slice(6).trim();
+            if(data==='[DONE]') return;
+            try{
+              var parsed = JSON.parse(data);
+              if(parsed.text){
+                fullText += parsed.text;
+                if(!bubble) bubble = addMsg('ai','');
+                /* render markdown-lite: **bold**, bullet points */
+                bubble.innerHTML = mdLite(fullText);
+                msgs.scrollTop = msgs.scrollHeight;
+              }
+            }catch(e){}
+          });
+          pump();
+        }).catch(function(){ send.disabled=false; });
+      }
+      pump();
+    }).catch(function(){
+      typing.remove();
+      addMsg('ai','Network error — check your connection and try again.');
+      send.disabled = false;
+    });
+  }
+
+  /* ---- minimal markdown renderer ---- */
+  function mdLite(t){
+    return t
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+      .replace(/\*(.+?)\*/g,'<i>$1</i>')
+      .replace(/`(.+?)`/g,'<code style="background:#E4EEEE;padding:1px 4px;border-radius:3px;font-size:11px">$1</code>')
+      .replace(/```chart[\s\S]*?```/g,'<span style="color:#7A9C9C;font-size:11px">[chart loading…]</span>')
+      .replace(/^[-•]\s+(.+)$/gm,'<div style="display:flex;gap:5px;margin:1px 0"><span style="color:#C98A0B;flex-shrink:0">•</span><span>$1</span></div>')
+      .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+  }
+
+  /* ---- input handlers ---- */
+  send.addEventListener('click', function(){ ask(input.value.trim()); });
+  input.addEventListener('keydown', function(e){
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); ask(input.value.trim()); }
+  });
+  input.addEventListener('input', function(){
+    this.style.height=''; this.style.height=Math.min(this.scrollHeight,96)+'px';
+  });
+
+  /* ---- expose open trigger so other parts can launch it ---- */
+  window.openAiPanel = openDrawer;
+})();
+</script>
+
+</body>
+</html>

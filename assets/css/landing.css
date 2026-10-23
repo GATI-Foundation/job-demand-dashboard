@@ -1,0 +1,89 @@
+/* ============================================================================
+   Landing page — layout & components specific to index.html
+   ============================================================================ */
+
+/* Header */
+.site-head { border-bottom: 1px solid var(--line); background: rgba(251,250,247,.85); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 10; }
+.site-head__row { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand__mark { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: .02em; color: var(--teal-deep); }
+.brand__logo { height: 30px; width: auto; display: block; }
+.brand__logo--foot { height: 34px; }
+.brand__sub { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.site-nav { display: flex; gap: 22px; font-size: 14px; }
+.site-nav a { color: var(--ink-soft); }
+.site-nav a:hover { color: var(--teal); }
+
+/* Hero */
+.hero { padding: 72px 0 40px; }
+.hero__inner { max-width: 760px; }
+.hero__title { font-size: clamp(34px, 5vw, 54px); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+.hero__lede { font-size: 18px; color: var(--ink-soft); margin: 20px 0 24px; max-width: 60ch; }
+.hero__meta { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Sector section */
+.sectors { padding: 24px 0 8px; }
+.sectors__head { margin-bottom: 22px; }
+.sectors__head h2 { font-size: 24px; }
+.sectors__head p { margin: 6px 0 0; font-size: 14px; }
+
+.sector-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 20px; }
+
+/* Sector card — teal spine + code-chip scope + hover lift */
+.sector-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 22px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.sector-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--card-accent, var(--teal)); }
+.sector-card:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(18,48,46,.05), 0 16px 36px rgba(18,48,46,.10); border-color: #D6D3C8; }
+
+.sector-card__top { display: flex; align-items: center; justify-content: space-between; }
+.sector-card__icon { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--teal-soft); color: var(--card-accent, var(--teal)); }
+.sector-card__icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.sector-card__scope { }
+.sector-card h3 { font-size: 20px; }
+.sector-card__tagline { font-size: 14px; color: var(--ink-soft); margin: 2px 0 0; flex: 1; }
+
+/* Live stat line (filled from data/<sector>.meta.json) */
+.sector-card__stat { display: flex; align-items: baseline; gap: 7px; min-height: 20px; font-size: 13px; color: var(--ink-soft); }
+.sector-card__stat .stat-num { font-size: 15px; font-weight: 500; color: var(--teal-deep); }
+.sector-card__stat .stat-unit { color: var(--muted); }
+.sector-card__stat .stat-sep { color: var(--line); }
+.sector-card__stat .stat-range { color: var(--muted); font-size: 12.5px; }
+.sector-card__stat .stat-pending { font-size: 12px; color: var(--muted); font-style: italic; }
+.sector-card__stat.is-empty { opacity: .8; }
+.sector-card__stat .skeleton { display: inline-block; width: 130px; height: 12px; border-radius: 6px;
+  background: linear-gradient(90deg, var(--line-soft) 25%, #F3F1E9 37%, var(--line-soft) 63%);
+  background-size: 400% 100%; animation: shimmer 1.3s ease infinite; }
+@keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+.sector-card__cta { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-body); font-weight: 500; font-size: 14px; color: var(--teal); margin-top: 4px; }
+.sector-card__cta .arw { transition: transform .16s ease; }
+.sector-card:hover .sector-card__cta .arw { transform: translateX(3px); }
+.sector-card__link { position: absolute; inset: 0; text-indent: -9999px; overflow: hidden; }
+
+/* Data note */
+.datanote { padding: 28px 0 8px; }
+.datanote__card { padding: 22px 24px; }
+.datanote__card h3 { font-size: 17px; margin-bottom: 8px; }
+.datanote__card code { background: var(--line-soft); padding: 1px 6px; border-radius: 5px; font-size: 12.5px; }
+
+/* Footer */
+.site-foot { margin-top: 56px; background: var(--teal-deep); color: #DCEBE8; }
+.site-foot__row { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 40px 24px; }
+.site-foot__links { display: flex; gap: 22px; align-items: flex-start; }
+.site-foot__links a { color: #CFE3E0; font-size: 14px; }
+.site-foot__links a:hover { color: #fff; }
+
+@media (max-width: 640px) {
+  .hero { padding: 48px 0 28px; }
+  .site-nav { display: none; }
+}
