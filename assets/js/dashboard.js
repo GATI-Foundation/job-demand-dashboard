@@ -357,7 +357,7 @@ function hBar(id, items, opts){
     y: wrapped,
     x: vals,
     customdata: s.map(function(d){
-      return [ (d.code ? d.code + ' · ' : '') + d.label, d.count,
+      return [ d.label, d.count,
                total ? +(d.count/total*100).toFixed(1) : 0 ];
     }),
     marker:{ color: opts.color || s.map(function(d){ return d.color || PAL.teal; }),
