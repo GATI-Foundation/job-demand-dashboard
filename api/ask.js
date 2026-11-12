@@ -9,6 +9,13 @@ export const config = { runtime: "edge" };
    Use a current stable Flash model. Override without a code change by setting
    GEMINI_MODEL in Vercel env vars.                                           */
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+/* If the main model is overloaded (503) or rate-limited (429), retry once and
+   then fall back to these, in order. Override with GEMINI_FALLBACK_MODELS
+   (comma-separated) in Vercel env vars.                                      */
+const FALLBACKS = (process.env.GEMINI_FALLBACK_MODELS || "gemini-3.6-flash,gemini-3.5-flash-lite")
+  .split(",").map(function(m) { return m.trim(); }).filter(Boolean);
+const RETRYABLE = [429, 500, 502, 503, 504];
+const sleep = function(ms) { return new Promise(function(r) { setTimeout(r, ms); }); };
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
 
 export default async function handler(req) {
@@ -85,22 +92,32 @@ RULES:
     ],
   };
 
-  const url = `${API_BASE}${MODEL}:streamGenerateContent?alt=sse`;
-
-  let geminiRes;
-  try {
-    geminiRes = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify(payload),
-    });
-  } catch (e) {
-    return new Response("Gemini API unreachable: " + e.message, { status: 502 });
+  /* Try the main model (twice, with a short pause), then each fallback once.
+     Stop at the first success, or at an error that retrying cannot fix
+     (bad key, bad request).                                                 */
+  const attempts = [MODEL, MODEL].concat(FALLBACKS.filter(function(m) { return m !== MODEL; }));
+  let geminiRes = null, lastStatus = 502, lastErr = "";
+  for (let i = 0; i < attempts.length; i++) {
+    if (i > 0) await sleep(i === 1 ? 800 : 300);
+    const url = `${API_BASE}${attempts[i]}:streamGenerateContent?alt=sse`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) { geminiRes = res; break; }
+      lastStatus = res.status;
+      lastErr = await res.text();
+      /* a fallback model the key cannot use (404) is skipped, not fatal */
+      if (!RETRYABLE.includes(res.status) && !(res.status === 404 && i > 0)) break;
+    } catch (e) {
+      lastStatus = 502;
+      lastErr = "Gemini API unreachable: " + e.message;
+    }
   }
-
-  if (!geminiRes.ok) {
-    const err = await geminiRes.text();
-    return new Response("Gemini error: " + err, { status: geminiRes.status });
+  if (!geminiRes) {
+    return new Response("Gemini error: " + lastErr, { status: lastStatus });
   }
 
   /* Stream Gemini's SSE response straight back to the client */

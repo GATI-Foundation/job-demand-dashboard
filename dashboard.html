@@ -765,7 +765,10 @@
         res.text().then(function(t){
           var why = String(t||'').replace(/\s+/g,' ').slice(0,240);
           typing.remove();
-          addMsg('ai','Sorry, the AI request failed (error '+res.status+')'+(why?': '+esc(why):'.'));
+          var busy = res.status===503 || res.status===429 || /high demand|overloaded|UNAVAILABLE|RESOURCE_EXHAUSTED/i.test(why);
+          addMsg('ai', busy
+            ? 'The AI service is busy right now. Please try again in a minute.'
+            : 'Sorry, the AI request failed (error '+res.status+')'+(why?': '+esc(why):'.'));
           console.error('[ask] /api/ask', res.status, t);
           history.pop();   /* drop the unanswered question so the next request stays clean */
           send.disabled=false;
