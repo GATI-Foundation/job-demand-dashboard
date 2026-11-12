@@ -1,5 +1,5 @@
 /* ============================================================================
-   Landing page — layout & components specific to index.html
+   Landing page - layout & components specific to index.html
    ============================================================================ */
 
 /* Header */
@@ -29,7 +29,7 @@
 
 .sector-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 20px; }
 
-/* Sector card — teal spine + code-chip scope + hover lift */
+/* Sector card - teal spine + code-chip scope + hover lift */
 .sector-card {
   position: relative;
   display: flex;
@@ -76,12 +76,6 @@
 .datanote__card h3 { font-size: 17px; margin-bottom: 8px; }
 .datanote__card code { background: var(--line-soft); padding: 1px 6px; border-radius: 5px; font-size: 12.5px; }
 
-/* Footer */
-.site-foot { margin-top: 56px; background: var(--teal-deep); color: #DCEBE8; }
-.site-foot__row { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 40px 24px; }
-.site-foot__links { display: flex; gap: 22px; align-items: flex-start; }
-.site-foot__links a { color: #CFE3E0; font-size: 14px; }
-.site-foot__links a:hover { color: #fff; }
 
 @media (max-width: 640px) {
   .hero { padding: 48px 0 28px; }

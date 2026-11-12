@@ -7,6 +7,7 @@
   <meta name="description" content="GATI's labour-market demand dashboards across skills-mobility corridors. Choose a destination country to explore sector-level demand.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/footer.css?v=20261112-3">
   <style>
     :root{ --teal:#0F5B5A; --teal2:#1A7B7A; --gold:#C98A0B; --gold2:#D4940A; --ink:#22312F; --soft:#7A9C9C; --bg:#F5F8F8; }
     *{margin:0;padding:0;box-sizing:border-box}
@@ -75,7 +76,6 @@
     .cty.off{opacity:.62;cursor:default;background:#FBFDFD}
     .cty.off .soon{position:absolute;top:16px;right:16px;font-size:9.5px;font-weight:700;letter-spacing:1.5px;
       text-transform:uppercase;background:#EFF5F5;color:var(--soft);padding:4px 9px;border-radius:20px}
-    footer.ft{max-width:1060px;margin:0 auto;padding:0 0 34px;color:#9AB4B3;font-size:11px}
   </style>
 </head>
 <body>
@@ -101,25 +101,50 @@
   <section class="hero">
     <p class="eyebrow">Global Skills Mobility · Demand Intelligence</p>
     <h1>Where the world is hiring, corridor by corridor.</h1>
-    <p>Sector-level labour-market demand dashboards for GATI's skills-mobility corridors — built from live job-posting
+    <p>Sector-level labour-market demand dashboards for GATI's skills-mobility corridors, built from live job-posting
        data, classified to international standards (ISCO-08, ISIC Rev.4). Choose a destination country to explore its
        sector dashboards.</p>
   </section>
 
   <section class="countries" id="country-grid"><!-- filled by script --></section>
 
-  <footer class="ft">GATI Foundation · The Convergence Foundation · Data classified to ISCO-08 (ILO) and ISIC Rev.4 (UN)</footer>
 </div>
 
-<script src="assets/js/sectors.js?v=20260725-2"></script>
+<footer class="gati-foot">
+  <div class="gati-foot__inner">
+    <div class="gati-foot__brand">
+      <img class="gati-foot__logo" src="assets/img/gati-logo-white.svg" alt="GATI Foundation">
+      <p class="gati-foot__badge">Official GATI Foundation dashboard</p>
+      <p class="gati-foot__tag">Global Access to Talent from India, building the global skills-mobility ecosystem.</p>
+    </div>
+    <div>
+      <h4>Address</h4>
+      <address>GATI Foundation<br>242, Okhla Industrial Estate Phase 3 Rd<br>Okhla Phase III, New Delhi<br>Delhi 110020, India</address>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <div class="gati-foot__links">
+        <a href="mailto:info@gatifoundation.org">info@gatifoundation.org</a>
+        <a href="https://www.gatifoundation.org/" target="_blank" rel="noopener">gatifoundation.org</a>
+        <a href="https://www.linkedin.com/company/gati-foundation/" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+  </div>
+  <div class="gati-foot__base">
+    <span>&copy; GATI Foundation. Incubated by The Convergence Foundation.</span>
+    <span>Data classified to ISCO-08 (ILO) and ISIC Rev.4 (UN)</span>
+  </div>
+</footer>
+
+<script src="assets/js/sectors.js?v=20261112-3"></script>
 <script>
   /* rotating quotes during the loader */
   var QUOTES = [
     'By 2030, Germany alone will need an estimated <b>7 million</b> additional workers to offset demographic decline.',
     'India will add roughly <b>a quarter of the world\'s new working-age population</b> over the next decade.',
-    '<b>Global skills mobility</b> is the bridge between ageing economies and young workforces — built one corridor at a time.',
+    '<b>Global skills mobility</b> is the bridge between ageing economies and young workforces, built one corridor at a time.',
     'Every classified posting in these dashboards maps demand to <b>ISCO-08 occupations</b> and <b>ISIC Rev.4 sectors</b>.',
-    'Well-governed migration corridors raise wages for workers and fill critical gaps for employers — <b>a rare win-win</b>.'
+    'Well-governed migration corridors raise wages for workers and fill critical gaps for employers: <b>a rare win-win</b>.'
   ];
   (function(){
     var qEl = document.getElementById('g-quote');

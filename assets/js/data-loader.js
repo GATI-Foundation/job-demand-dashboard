@@ -1,5 +1,5 @@
 /* ============================================================================
-   DATA LOADER  —  builds the full in-browser DATA model from a sector CSV.
+   DATA LOADER - builds the full in-browser DATA model from a sector CSV.
    ----------------------------------------------------------------------------
    Loading is done with an explicit fetch() (NOT PapaParse download:true) so we
    can:
@@ -70,14 +70,14 @@ function sniffDelimiter(text) {
 
 
 /* ============================================================================
-   DEFENSIVE LAYER — the dashboard NEVER shows raw codes or German noise, even
+   DEFENSIVE LAYER - the dashboard NEVER shows raw codes or German noise, even
    if a raw (unprocessed) CSV is deployed. Official ISCO-08 unit-group titles,
    keyed by 4-digit code; fallback chain: CSV name -> this map -> ISCO-3 name.
    ============================================================================ */
 
 
 
-/* Official ISIC Rev.4 DIVISION (2-digit) titles — the employer-sector level
+/* Official ISIC Rev.4 DIVISION (2-digit) titles - the employer-sector level
    used across the dashboard. Derived from the 4-digit class in the data. */
 var ISIC2_DIVISIONS = {
  "01":"Crop and animal production, hunting and related service activities","02":"Forestry and logging",
@@ -144,7 +144,7 @@ var ISCO2_OFFICIAL = {
 };
 if (typeof window !== "undefined") window.ISCO2_OFFICIAL = ISCO2_OFFICIAL;
 
-/* Official ISCO-08 minor-group (3-digit) titles — used for ISCO-3 display names
+/* Official ISCO-08 minor-group (3-digit) titles - used for ISCO-3 display names
    so charts never depend on (possibly empty or misspelled) CSV name columns. */
 var ISCO3_OFFICIAL = {
  111:"Legislators and Senior Officials",112:"Managing Directors and Chief Executives",
@@ -315,7 +315,7 @@ function loadSectorData(sectorId) {
   /* Use the browser's normal HTTP cache (validated by the server's
      ETag/Last-Modified) instead of "no-store". The landing card has usually
      just fetched this same file, so this reuses it instead of pulling the
-     full multi-megabyte CSV again — which is what made opening a dashboard
+     full multi-megabyte CSV again - which is what made opening a dashboard
      slow. Fresh data still loads whenever the file actually changes. */
   return fetch(url).then(function (res) {
     if (!res.ok) {
@@ -342,7 +342,7 @@ function loadSectorData(sectorId) {
 
     var built = buildDATA(rows, { url: url, delimiter: delim, bytes: text.length, headers: headers }, sector);
     if (!built.rows.length) {
-      /* Parsed fine but nothing survived the in-scope/classified filter — tell
+      /* Parsed fine but nothing survived the in-scope/classified filter - tell
          the user exactly which required columns are missing (if any).          */
       var need = ["ISCO_4", "ISCO_3", "ISCO_2", "State"];
       var have = headers.map(keyNorm);
@@ -368,7 +368,7 @@ function buildDATA(rawRows, diag, sector) {
   rawRows.forEach(function (raw0) {
     var row = normaliseRow(raw0);
     var isco4code = pick(row, ["ISCO_4", "ISCO_Code", "ISCO4"]);
-    /* Every scraped posting is used — no scope filtering. */
+    /* Every scraped posting is used - no scope filtering. */
 
     var dRaw = pick(row, ["Date_Posted", "Date_Scraped"]);
     var d = dRaw ? new Date(dRaw) : null;
@@ -408,9 +408,9 @@ function buildDATA(rawRows, diag, sector) {
       emp:      pick(row, ["Employment_type", "Employment_Type", "Contract_Type"]) || "Not specified",
       date:     d,
       dateStr:  dRaw || "",
-      company:  pick(row, ["Company_Name", "Company", "Employer"]) || "—",
+      company:  pick(row, ["Company_Name", "Company", "Employer"]) || "-",
       title:    cleanTitleJS(pick(row, ["Job_Title", "Title"]),
-                             pick(row, ["City"]), pick(row, ["State", "Bundesland", "Region"])) || "\u2014",
+                             pick(row, ["City"]), pick(row, ["State", "Bundesland", "Region"])) || "-",
       empCat:   pick(row, ["Employer_Type_Raw", "Employer_Category", "Employer_Type"]) || "",
       salary:   pick(row, ["Salary", "Pay", "Compensation"]) || "",
       desc:     desc || "",
@@ -535,7 +535,7 @@ function buildDATA(rawRows, diag, sector) {
     var rg = byRole[code];
     return { isco4: parseInt(code, 10), isco3: rg.isco3, name: rg.name || ("ISCO " + code), count: rg.count,
              ptPct: rg.count ? +(rg.pt / rg.count * 100).toFixed(1) : 0,
-             topEmp: topKey(rg.emps) || "\u2014", topState: topKey(rg.states) || "\u2014" };
+             topEmp: topKey(rg.emps) || "-", topState: topKey(rg.states) || "-" };
   }).sort(function (a, b) { return b.count - a.count; });
 
   /* Role Analysis groups = the six largest ISCO-4 unit groups. */
@@ -564,7 +564,7 @@ function buildDATA(rawRows, diag, sector) {
   var stateGeo = {};
   Object.keys(byState).forEach(function (st) {
     var g = byState[st];
-    stateGeo[st] = { hc: g.count, topRoles: topKeys(g.roles, 3), topEmp: topKey(g.emps) || "—" };
+    stateGeo[st] = { hc: g.count, topRoles: topKeys(g.roles, 3), topEmp: topKey(g.emps) || "-" };
   });
 
   /* 7. companies per role + global. */
@@ -572,7 +572,7 @@ function buildDATA(rawRows, diag, sector) {
   Object.keys(coRole).forEach(function (code) {
     companies[code] = Object.keys(coRole[code]).map(function (n) {
       return { name: n, count: coRole[code][n].count, isic: coRole[code][n].isic };
-    }).filter(function (c) { return c.name && c.name !== "—"; })
+    }).filter(function (c) { return c.name && c.name !== "-"; })
       .sort(function (a, b) { return b.count - a.count; }).slice(0, 15);
   });
   var companiesAll = Object.keys(coAll).map(function (n) {
@@ -586,7 +586,7 @@ function buildDATA(rawRows, diag, sector) {
     Object.keys(coSec[code]).forEach(function (sector) {
       out[sector] = Object.keys(coSec[code][sector]).map(function (n) {
         return { name: n, count: coSec[code][sector][n] };
-      }).filter(function (c) { return c.name && c.name !== "—"; })
+      }).filter(function (c) { return c.name && c.name !== "-"; })
         .sort(function (a, b) { return b.count - a.count; }).slice(0, 10);
     });
     sectorEmployers[code] = out;
@@ -594,7 +594,7 @@ function buildDATA(rawRows, diag, sector) {
 
   var dateRange = dated.length
     ? fmtDay(new Date(Math.min.apply(null, dated))) + " – " + fmtDay(new Date(Math.max.apply(null, dated)))
-    : "—";
+    : "-";
 
   return {
     lookup: { states: states, isic: isic, isco4: isco4, empTypes: empTypes, weekLabels: weekLabels },

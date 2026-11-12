@@ -1,11 +1,11 @@
 /* ============================================================================
-   GATI Skills-Mobility Dashboards — shared design tokens & base components
+   GATI Skills-Mobility Dashboards - shared design tokens & base components
    One place for the visual identity. Both the landing page and every dashboard
    import this file first, then their own page-specific stylesheet.
    ============================================================================ */
 
 :root {
-  /* Palette — GATI deep teal + gold on warm paper */
+  /* Palette - GATI deep teal + gold on warm paper */
   --paper:      #FBFAF7;
   --surface:    #FFFFFF;
   --ink:        #12302E;
@@ -53,7 +53,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.
 a { color: var(--teal); text-decoration: none; }
 a:hover { color: var(--teal-deep); }
 
-/* Eyebrow / small caps label — used above headings */
+/* Eyebrow / small caps label - used above headings */
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -63,7 +63,7 @@ a:hover { color: var(--teal-deep); }
   margin: 0 0 10px;
 }
 
-/* Monospace code chip — the "labour ledger" signature (ISCO codes, figures) */
+/* Monospace code chip - the "labour ledger" signature (ISCO codes, figures) */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -108,7 +108,7 @@ a:hover { color: var(--teal-deep); }
   box-shadow: var(--shadow);
 }
 
-/* Ledger table — hairline, tabular, monospace figures */
+/* Ledger table - hairline, tabular, monospace figures */
 .ledger { width: 100%; border-collapse: collapse; font-size: 13px; }
 .ledger th {
   text-align: left;

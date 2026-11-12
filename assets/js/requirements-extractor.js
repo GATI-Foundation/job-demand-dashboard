@@ -1,5 +1,5 @@
 /* ============================================================================
-   REQUIREMENTS EXTRACTOR — single unified layer for ALL datasets.
+   REQUIREMENTS EXTRACTOR - single unified layer for ALL datasets.
    Ported from hospitality_requirements_extractor.jsx and
    logistics_requirements_extractor.jsx: one rule engine, the union of both
    sectors' lexicons (the richer variant kept where the two versions of a rule

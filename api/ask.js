@@ -1,11 +1,14 @@
-/* Vercel serverless function — /api/ask
+/* Vercel serverless function - /api/ask
    Receives { question, context } from the dashboard and streams a response
-   from the Gemini API. The GEMINI_API_KEY lives in Vercel env vars — never
+   from the Gemini API. The GEMINI_API_KEY lives in Vercel env vars - never
    in client-side code.                                                      */
 
 export const config = { runtime: "edge" };
 
-const MODEL = "gemini-2.0-flash-exp";
+/* gemini-2.0-flash-exp has been shut down by Google, so every call to it failed.
+   Use a current stable Flash model. Override without a code change by setting
+   GEMINI_MODEL in Vercel env vars.                                           */
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
 
 export default async function handler(req) {
@@ -29,11 +32,12 @@ export default async function handler(req) {
   try { body = await req.json(); }
   catch (e) { return new Response("Invalid JSON", { status: 400 }); }
 
-  const { question, context, history = [] } = body;
+  const { question, history = [] } = body;
+  const context = body.context || {};
   if (!question) return new Response("No question provided", { status: 400 });
 
   /* Build a tight system prompt grounded in the dashboard's current state */
-  const system = `You are a labour-market intelligence assistant embedded in the GATI (Global Access to Talent from India) dashboard. GATI facilitates ethical, circular global skills mobility — primarily placing Indian workers in Germany and Japan.
+  const system = `You are a labour-market intelligence assistant embedded in the GATI (Global Access to Talent from India) dashboard. GATI facilitates ethical, circular global skills mobility, primarily placing Indian workers in Germany and Japan.
 
 The user is viewing the ${context.sector || "sector"} dashboard${context.filters?.state && context.filters.state !== "ALL" ? ` filtered to ${context.filters.state}` : ""}${context.filters?.isic && context.filters.isic !== "ALL" ? `, employer sector: ${context.filters.isic}` : ""}.
 
@@ -49,22 +53,29 @@ RULES:
   \`\`\`
 - If asked for a chart but you lack the data, say so and answer in text instead.
 - When relevant, connect insights to GATI's mission: Indian worker placement, skills-mobility corridors, visa signals, employer demand.
-- Be direct. No filler phrases.`;
+- Be direct. No filler phrases.
+- Never use em dashes or en dashes. Use commas, colons or full stops instead.`;
 
   /* Build conversation turns */
   const contents = [];
   history.forEach(function(turn) {
-    contents.push({ role: turn.role, parts: [{ text: turn.text }] });
+    if (!turn || !turn.text) return;
+    contents.push({ role: turn.role === "model" ? "model" : "user", parts: [{ text: turn.text }] });
   });
+  /* the client's history already ends with this question; do not send it twice */
+  const last = contents[contents.length - 1];
+  if (last && last.role === "user" && last.parts[0].text === question) contents.pop();
   contents.push({ role: "user", parts: [{ text: question }] });
 
   const payload = {
     system_instruction: { parts: [{ text: system }] },
     contents: contents,
     generationConfig: {
-      temperature: 0.3,
-      maxOutputTokens: 1024,
-      topP: 0.8,
+      /* Gemini 3.x thinks before answering and those tokens count against
+         maxOutputTokens, so keep thinking low and leave room for the answer.
+         Google advises leaving temperature at its default for 3.x models.   */
+      maxOutputTokens: 2048,
+      thinkingConfig: { thinkingLevel: "low" },
     },
     safetySettings: [
       { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -74,13 +85,13 @@ RULES:
     ],
   };
 
-  const url = `${API_BASE}${MODEL}:streamGenerateContent?alt=sse&key=${key}`;
+  const url = `${API_BASE}${MODEL}:streamGenerateContent?alt=sse`;
 
   let geminiRes;
   try {
     geminiRes = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify(payload),
     });
   } catch (e) {
@@ -113,7 +124,10 @@ RULES:
         if (data === "[DONE]") continue;
         try {
           const parsed = JSON.parse(data);
-          const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+          /* join every answer part; skip "thought" parts from the model's reasoning */
+          const parts = parsed?.candidates?.[0]?.content?.parts || [];
+          const text = parts.filter(function(p) { return p.text && !p.thought; })
+                            .map(function(p) { return p.text; }).join("");
           if (text) {
             await writer.write(encoder.encode("data: " + JSON.stringify({ text }) + "\n\n"));
           }

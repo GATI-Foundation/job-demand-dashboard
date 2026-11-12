@@ -1,16 +1,16 @@
 /* ============================================================================
-   CHART KIT — shared chart styling, labelling and export for every chart.
+   CHART KIT - shared chart styling, labelling and export for every chart.
    ----------------------------------------------------------------------------
    Loaded before dashboard.js. It owns:
-     • PAL / SEQ / plotBase / plotCfg — one professional palette and one Plotly
+     • PAL / SEQ / plotBase / plotCfg - one professional palette and one Plotly
        base layout, so every chart in the dashboard looks like the same product.
-     • wrapLabel()  — wraps a long axis label across lines at word boundaries.
+     • wrapLabel() - wraps a long axis label across lines at word boundaries.
        Nothing is ever cut off with an ellipsis; the full string is also placed
        in the hover tooltip.
-     • drawChart(id, traces, layout, meta) — renders the chart AND attaches the
+     • drawChart(id, traces, layout, meta) - renders the chart AND attaches the
        export control to it. Every chart in the dashboard goes through this, so
        no chart can ship without a working download button.
-     • exportChart(id, fmt) — PNG (2x), SVG (vector), or CSV of the numbers
+     • exportChart(id, fmt) - PNG (2x), SVG (vector), or CSV of the numbers
        actually plotted.
    ============================================================================ */
 
@@ -46,7 +46,7 @@ var plotBase = {
   showlegend:false
 };
 
-/* Axis presets — used everywhere so gridlines/ticks never drift chart to chart. */
+/* Axis presets - used everywhere so gridlines/ticks never drift chart to chart. */
 function axV(extra){   /* value axis (numbers) */
   return Object.assign({ showgrid:true, gridcolor:PAL.grid, zeroline:false,
     tickfont:{size:10, color:PAL.soft}, fixedrange:true }, extra||{});
@@ -72,13 +72,13 @@ function wrapLabel(text, width){
   if (cur) lines.push(cur);
   return lines.join('<br>');
 }
-/* Code + wrapped name — only show the name, not the code. */
+/* Code + wrapped name - only show the name, not the code. */
 function codeLabel(code, name, width){
   return wrapLabel(name, width);
 }
 
 /* ============================================================================
-   drawChart — the only way charts get rendered in this dashboard.
+   drawChart - the only way charts get rendered in this dashboard.
    meta = { title, cols:[...], rows:[[...], ...] }  ->  powers the CSV export.
    ============================================================================ */
 function drawChart(id, traces, layout, meta){
@@ -127,7 +127,7 @@ function linesFromEvent(ev){
 
 /* Native Plotly hover boxes render INSIDE the chart's SVG, so they get
    squeezed and clipped at the edges. We hide them and draw our own HTML
-   card at document level instead \u2014 it can never be cut off. */
+   card at document level instead - it can never be cut off. */
 (function(){
   var st = document.createElement('style');
   st.textContent = '.js-plotly-plot .hoverlayer{display:none!important}';

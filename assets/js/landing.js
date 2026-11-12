@@ -1,9 +1,9 @@
 /* ============================================================================
-   Landing page — build sector cards from SECTORS (assets/js/sectors.js) and
+   Landing page - build sector cards from SECTORS (assets/js/sectors.js) and
    fill each with LIVE counts computed directly from data/<country>/<sector>.csv.
 
    The count is always read from the real CSV, so it can never go stale when the
-   data changes — no build step, no cached JSON. Counting is a single fast,
+   data changes - no build step, no cached JSON. Counting is a single fast,
    quote-aware pass over the downloaded file (rows can span multiple lines
    because descriptions contain embedded newlines), which runs in well under a
    second even on the largest sheets. If a sector's CSV isn't present, the card
@@ -151,7 +151,7 @@
       }
       function writeCache(sig, r){
         try { localStorage.setItem(CACHE_KEY, JSON.stringify({ sig: sig, n: r.n, dMin: r.dMin, dMax: r.dMax })); }
-        catch (e) { /* storage full or blocked — counting still works, just uncached */ }
+        catch (e) { /* storage full or blocked - counting still works, just uncached */ }
       }
       /* Everything below is fire-and-forget and time-boxed: a stalled network
          request can NEVER hang the page or block the card's "Open dashboard"

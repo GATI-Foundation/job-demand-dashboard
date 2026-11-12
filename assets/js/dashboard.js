@@ -1,5 +1,5 @@
 /* ============================================================================
-   GATI SECTOR DASHBOARD  —  render engine.
+   GATI SECTOR DASHBOARD - render engine.
    ----------------------------------------------------------------------------
    A faithful port of the original single-file healthcare dashboard's full
    analysis (all six tabs), driven by the CSV-built DATA model from
@@ -118,11 +118,11 @@ function showError(err, url){
     title = 'CSV not found at that path (HTTP ' + (d.status || '404') + ')';
     body =
       '<p>The dashboard fetched <code>'+esc(url)+'</code> and the server returned '+
-      '<b>HTTP '+esc(String(d.status||404))+'</b> — so the file isn\'t at that exact path in your published site. '+
+      '<b>HTTP '+esc(String(d.status||404))+'</b>: so the file isn\'t at that exact path in your published site. '+
       'The data loading code is fine; the file just isn\'t reachable there. Most common causes, in order:</p>'+
       '<ol style="text-align:left;font-size:12px;color:#3D6060;line-height:1.9;margin:10px 0 0;padding-left:20px">'+
-      '<li><b>The CSV is git-ignored.</b> Many repos have <code>*.csv</code> in <code>.gitignore</code>, so it exists locally but was never pushed. Run <code>git check-ignore '+esc(url)+'</code> — if it prints the path, that\'s it. Force-add with <code>git add -f '+esc(url)+'</code>.</li>'+
-      '<li><b>Filename / case mismatch.</b> GitHub Pages is case-sensitive. It must be exactly <code>'+esc(url)+'</code> (lowercase, matching the sector <code>id</code>) — not <code>Hospitality.csv</code> or <code>hospitality_final.csv</code>.</li>'+
+      '<li><b>The CSV is git-ignored.</b> Many repos have <code>*.csv</code> in <code>.gitignore</code>, so it exists locally but was never pushed. Run <code>git check-ignore '+esc(url)+'</code>: if it prints the path, that\'s it. Force-add with <code>git add -f '+esc(url)+'</code>.</li>'+
+      '<li><b>Filename / case mismatch.</b> GitHub Pages is case-sensitive. It must be exactly <code>'+esc(url)+'</code> (lowercase, matching the sector <code>id</code>): not <code>Hospitality.csv</code> or <code>hospitality_final.csv</code>.</li>'+
       '<li><b>Wrong folder.</b> It must sit in <code>/data</code> at the repo root, next to <code>dashboard.html</code>.</li>'+
       '<li><b>Not committed / not deployed yet.</b> Confirm it\'s in the latest commit and the Pages build finished.</li>'+
       '</ol>';
@@ -134,7 +134,7 @@ function showError(err, url){
       '<p style="margin:8px 0"><b style="color:#D94F3D">'+d.missing.map(esc).join(', ')+'</b></p>'+
       '<p style="font-size:12px;color:#3D6060">Columns detected in your file: <span style="color:#7A9C9C">'+
       (d.headers||[]).slice(0,24).map(esc).join(', ')+(d.headers&&d.headers.length>24?' …':'')+'</span></p>'+
-      '<p style="font-size:12px;color:#3D6060;margin-top:8px">Column names are matched case-insensitively and ignore spaces/underscores, so the issue is a genuinely different (or absent) column — re-export from the classifier so it includes '+
+      '<p style="font-size:12px;color:#3D6060;margin-top:8px">Column names are matched case-insensitively and ignore spaces/underscores, so the issue is a genuinely different (or absent) column: re-export from the classifier so it includes '+
       '<code>ISCO_3</code>, <code>ISCO_4</code>, <code>ISCO_4_name</code>, <code>State</code>, and <code>Employer_Category</code>.</p>';
   } else if (kind === 'empty'){
     title = 'CSV loaded, but no rows survived classification';
@@ -146,7 +146,7 @@ function showError(err, url){
     title = 'Could not load sector data';
     body =
       '<p>Fetching <code>'+esc(url)+'</code> failed at the network level. '+
-      'If you are opening the file directly from disk (<code>file://</code>), the browser blocks it — publish to GitHub Pages or serve over http. '+
+      'If you are opening the file directly from disk (<code>file://</code>), the browser blocks it: publish to GitHub Pages or serve over http. '+
       'Otherwise it may be a transient network error.</p>'+
       '<p style="font-size:12px;color:#7A9C9C;margin-top:8px">'+esc(String(err&&err.message||err))+'</p>';
   }
@@ -190,7 +190,7 @@ function fillDataBanner(){
   var m = DATA.meta, s = APP.sector;
   var items = [
     ['Source', s.source || 'StepStone Germany'],
-    ['Period', m.dateRange || '—'],
+    ['Period', m.dateRange || '-'],
     ['Postings Loaded', fmt(m.scraped)],
     ['In-scope '+s.label+' Postings', fmt(m.total)]
   ];
@@ -243,7 +243,7 @@ function showTab(id, btn){
   if (id==='context')    renderMarketContext(rows);
   if (id==='tiers')      renderTiers();
 
-  /* Run the heavy requirements extractor lazily — only when the user opens
+  /* Run the heavy requirements extractor lazily - only when the user opens
      a tab that needs it, and only once. This keeps the initial dashboard
      load fast (previously it ran twice over the whole dataset at load). */
   if (panel){
@@ -309,13 +309,13 @@ function updateKPIs(rows){
   var topSt = top3[0] ? top3[0][0] : 'N/A';
   var wk = DATA.meta.weeks || 1;
   kpi('kpi-total', fmt(total), APP.sector.label+' Postings', 'Approx. '+fmt(Math.round(total/Math.max(wk,1)))+' new postings per week');
-  kpi('kpi-lead', pct(leadN,total)+'%', (lead? lead.name : 'Lead'), fmt(leadN)+' postings \u2014 the largest ISCO-4 occupation');
+  kpi('kpi-lead', pct(leadN,total)+'%', (lead? lead.name : 'Lead'), fmt(leadN)+' postings, the largest ISCO-4 occupation');
   kpi('kpi-parttime', pct(pt,total)+'%', 'Open to Part-time', 'Accept flexible or part-time arrangements');
   kpi('kpi-geo', top3p+'%', 'Demand in Top 3 States', 'Led by '+topSt+': geographic concentration of demand');
 }
 
 /* ============================================================================
-   hBar — the shared horizontal bar chart.
+   hBar - the shared horizontal bar chart.
    Every bar chart in the dashboard is drawn through this so that labelling,
    colour, hover and export behave identically everywhere. Labels wrap across
    lines instead of being cut off; the untouched full name, the count and the
@@ -541,7 +541,7 @@ function buildRoleTab(){
       '</div>'+
       '<div class="grid-2" style="grid-template-columns:3fr 2fr">'+
         '<div class="card card-t"><div class="card-head">Top Advertised Job Titles</div>'+
-          '<div class="card-sub">This occupation is a single four-digit ISCO-08 unit group \u2014 the most specific level of the classification. The bars below show the job titles employers actually advertise inside it, as a % of the occupation\u2019s postings.</div>'+
+          '<div class="card-sub">This occupation is a single four-digit ISCO-08 unit group: the most specific level of the classification. The bars below show the job titles employers actually advertise inside it, as a % of the occupation\u2019s postings.</div>'+
           '<div class="card-body"><div id="rc-top-'+g.code+'"></div></div></div>'+
         '<div class="card card-g"><div class="card-head">Contract Type</div>'+
           '<div class="card-sub">Distribution of employment arrangements</div>'+
@@ -577,7 +577,7 @@ function renderRoleTab(rows, code){
   var meta=(typeof ROLE_META!=='undefined' && ROLE_META[code]) ? ROLE_META[code] : null;
 
   var el=document.getElementById('role-insight-'+code);
-  if(el) el.innerHTML='<b>'+esc(g.name)+'</b> — <b>'+fmt(tot)+' postings</b> ('+pct(tot,allTot)+'% of all '+
+  if(el) el.innerHTML='<b>'+esc(g.name)+'</b>: <b>'+fmt(tot)+' postings</b> ('+pct(tot,allTot)+'% of all '+
     esc(APP.sector.label.toLowerCase())+' demand). '+(meta?meta.desc:'');
 
   var pt=sub.filter(function(r){return PT_IDX[r[5]];}).length;
@@ -594,12 +594,12 @@ function renderRoleTab(rows, code){
   ensureIdx();
   var tc={}; sub.forEach(function(r){
     var t=(DATA.raw.title[_rowToIdx.get(r)]||'').trim();
-    if(t && t!=='\u2014') tc[t]=(tc[t]||0)+1;
+    if(t && t!=='-') tc[t]=(tc[t]||0)+1;
   });
   var items4=Object.keys(tc).map(function(k){ return { label:k, count:tc[k] }; })
     .sort(function(a,b){return b.count-a.count;}).slice(0,10);
   hBar('rc-top-'+code, items4, { total:tot, color:g.color, wrap:30,
-       ofWhat:'postings in this occupation', title:g.name+' \u2014 top advertised titles' });
+       ofWhat:'postings in this occupation', title:g.name+': top advertised titles' });
 
   /* Contract type */
   var ec={}; sub.forEach(function(r){ ec[r[5]]=(ec[r[5]]||0)+1; });
@@ -607,21 +607,21 @@ function renderRoleTab(rows, code){
     return { label:l, count:ec[i]||0, color:C.emp[i%C.emp.length] };
   }).filter(function(d){return d.count>0;});
   hBar('rc-emp-'+code, itemsE, { total:tot, wrap:22,
-       ofWhat:'postings in this occupation', title:g.name+' \u2014 contract type' });
+       ofWhat:'postings in this occupation', title:g.name+': contract type' });
 
   /* Employer sectors */
   var itemsS=Object.keys(isicc).map(function(k){
     return { label:k, count:isicc[k], color:isicColor(k) };
   }).sort(function(a,b){ return b.count-a.count; }).slice(0,10);
   hBar('rc-isic-'+code, itemsS, { total:tot, wrap:24,
-       ofWhat:'postings in this occupation', title:g.name+' \u2014 '+catPL() });
+       ofWhat:'postings in this occupation', title:g.name+': '+catPL() });
 
   /* Top companies (pre-computed) */
   var cos=(DATA.companies[String(code)]||[]).slice(0,15).map(function(d){
     return { label:d.name, count:d.count, color:isicColor(d.isic) };
   });
   hBar('rc-cos-'+code, cos, { total:tot, pct:false, wrap:26, tick:9.5,
-       ofWhat:'postings in this group', title:g.name+' — top employers' });
+       ofWhat:'postings in this group', title:g.name+': top employers' });
 
   renderEmployersBySector(code);
 }
@@ -634,19 +634,19 @@ function renderEmployersBySector(code){
     el.innerHTML='<p style="padding:12px;color:#7A9C9C;font-size:11px">No employer data available.</p>'; return;
   }
 
-  /* Table A \u2014 the ten most active employers for this occupation, flat. */
+  /* Table A - the ten most active employers for this occupation, flat. */
   var html='<div class="card-head" style="padding-left:0;font-size:12px">Top 10 Employers</div>'+
     '<table class="data-tbl" style="margin-bottom:16px"><thead><tr>'+
     '<th style="width:28px;text-align:center">#</th><th>Employer</th><th>'+catC()+'</th>'+
     '<th style="text-align:right">Postings</th></tr></thead><tbody>';
   cos.slice(0,10).forEach(function(e,i){
     html+='<tr><td style="color:#7A9C9C;font-size:10px;text-align:center">'+(i+1)+'</td>'+
-      '<td><b>'+esc(e.name)+'</b></td><td style="color:'+isicColor(e.isic)+'">'+esc(e.isic||'\u2014')+'</td>'+
+      '<td><b>'+esc(e.name)+'</b></td><td style="color:'+isicColor(e.isic)+'">'+esc(e.isic||'-')+'</td>'+
       '<td class="cnt" style="text-align:right">'+fmt(e.count)+'</td></tr>';
   });
   html+='</tbody></table>';
 
-  /* Table B \u2014 the ten largest sectors for this occupation, three employers each. */
+  /* Table B - the ten largest sectors for this occupation, three employers each. */
   var sectors=Object.keys(bySector).filter(function(s2){ return bySector[s2]&&bySector[s2].length>0; })
     .sort(function(a,b){
       var sa=bySector[a].reduce(function(x,e){return x+e.count;},0);
@@ -827,7 +827,7 @@ function renderIsicGuide(){
   var html='<table class="data-tbl"><thead><tr><th>Employer Sector</th><th>Postings</th><th style="min-width:280px">Includes</th></tr></thead><tbody>';
   names.forEach(function(name){
     var code=(DATA.isicCodeByName&&DATA.isicCodeByName[name])||'';   /* internal lookup only, never displayed */
-    var desc=(code&&ISIC_GUIDE[String(code)])||'\u2014';
+    var desc=(code&&ISIC_GUIDE[String(code)])||'-';
     html+='<tr><td><b>'+esc(name)+'</b></td>'+
       '<td class="cnt">'+fmt(c[name])+'</td><td style="font-size:11px;color:#3A4A4A">'+esc(desc)+'</td></tr>';
   });
@@ -853,13 +853,13 @@ function renderSummaries(){
     if (r[1]>=0){ var e=DATA.lookup.isic[r[1]]; a.emps[e]=(a.emps[e]||0)+1; }
     if (r[0]>=0){ var st=DATA.lookup.states[r[0]]; a.states[st]=(a.states[st]||0)+1; }
   });
-  function topK(o){ var b=null,n=-1; for(var k in o){ if(o[k]>n){n=o[k];b=k;} } return b||'\u2014'; }
+  function topK(o){ var b=null,n=-1; for(var k in o){ if(o[k]>n){n=o[k];b=k;} } return b||'-'; }
   var names=Object.keys(agg).sort(function(a,b){ return agg[b].count-agg[a].count; });
   var html='<table class="data-tbl"><thead><tr><th>Occupation (ISCO-4)</th><th>Code</th><th>Total Postings</th><th>% Open to Part-time</th><th>Top '+catC()+'</th><th>Top State</th></tr></thead><tbody>';
   names.forEach(function(name){
     var a=agg[name];
     var ptPct=a.count?+(a.pt/a.count*100).toFixed(1):0;
-    var code=(DATA.isco4CodeByName&&DATA.isco4CodeByName[name])||'\u2014';
+    var code=(DATA.isco4CodeByName&&DATA.isco4CodeByName[name])||'-';
     html+='<tr><td><b>'+esc(name)+'</b></td><td><span class="badge">'+esc(String(code))+'</span></td><td class="cnt">'+fmt(a.count)+'</td><td class="'+(ptPct>60?'gld':'')+'">'+ptPct+'%</td><td>'+esc(topK(a.emps))+'</td><td>'+esc(topK(a.states))+'</td></tr>';
   });
   document.getElementById('explorer-table').innerHTML=html+'</tbody></table>';
@@ -868,7 +868,7 @@ function renderSummaries(){
 
 function renderSectorSummary(){
   var rows=getRows();
-  function topK(o){ var b=null,n=-1; for(var k in o){ if(o[k]>n){n=o[k];b=k;} } return b||'\u2014'; }
+  function topK(o){ var b=null,n=-1; for(var k in o){ if(o[k]>n){n=o[k];b=k;} } return b||'-'; }
   /* Employer sector summary at the ISIC-2 level. */
   var sAgg={};
   rows.forEach(function(r){
@@ -888,7 +888,7 @@ function renderSectorSummary(){
     sNames.forEach(function(name){
       var a=sAgg[name];
       var ptPct=a.count?+(a.pt/a.count*100).toFixed(1):0;
-      var code=(DATA.isicCodeByName&&DATA.isicCodeByName[name])||'\u2014';
+      var code=(DATA.isicCodeByName&&DATA.isicCodeByName[name])||'-';
       h2+='<tr><td><b>'+esc(name)+'</b></td><td><span class="badge badge-g">'+esc(String(code))+'</span></td><td class="cnt">'+fmt(a.count)+'</td><td class="'+(ptPct>60?'gld':'')+'">'+ptPct+'%</td><td>'+esc(topK(a.occ))+'</td><td>'+esc(topK(a.states))+'</td></tr>';
     });
     el2.innerHTML=h2+'</tbody></table>';
@@ -1002,7 +1002,7 @@ function renderClassSectors(rows){
          title:'Employer sectors (ISIC-2) ranked by postings' });
   var hS='<table class="data-tbl"><thead><tr><th>ISIC-2</th><th>Employer Sector</th><th>Postings</th><th>Share</th></tr></thead><tbody>';
   tS.forEach(function(d){
-    hS+='<tr><td>'+(d.code?'<span class="badge badge-g">'+esc(String(d.code))+'</span>':'\u2014')+'</td>'+
+    hS+='<tr><td>'+(d.code?'<span class="badge badge-g">'+esc(String(d.code))+'</span>':'-')+'</td>'+
         '<td><b>'+esc(d.name)+'</b></td><td class="cnt">'+fmt(d.count)+'</td>'+
         '<td class="num">'+pct(d.count,total)+'%</td></tr>';
   });
@@ -1010,7 +1010,7 @@ function renderClassSectors(rows){
   renderSectorSummary();
   renderIsicGuide();
 
-  /* headline chips for the sector view reuse the shared KPI row? no \u2014 this view has none */
+  /* headline chips for the sector view reuse the shared KPI row? no - this view has none */
 }
 
 function renderClassNational(rows){
@@ -1032,10 +1032,10 @@ function renderClassNational(rows){
   /* headline classification counts */
   kpi('cls-k1', fmt(t4.length), 'ISCO-4 Unit Groups Found', 'Distinct four-digit occupations identified in the current selection');
   var _secN={}; rows.forEach(function(r){ if(r[1]>=0) _secN[DATA.lookup.isic[r[1]]]=1; });
-  kpi('cls-k2', fmt(Object.keys(_secN).length), 'Employer Sectors Found', 'Distinct ISIC-2 employer sectors \u2014 full listing in the Employer Sectors sub-tab');
+  kpi('cls-k2', fmt(Object.keys(_secN).length), 'Employer Sectors Found', 'Distinct ISIC-2 employer sectors: full listing in the Employer Sectors sub-tab');
   kpi('cls-k3', fmt(total), 'Postings Classified', 'Every posting in the selection carries both ISCO levels');
   var top1 = t4[0];
-  kpi('cls-k4', top1 ? top1.name : '\u2014', 'Largest Unit Group', top1 ? fmt(top1.count)+' postings \u2014 '+pct(top1.count,total)+'% of the selection' : '');
+  kpi('cls-k4', top1 ? top1.name : '-', 'Largest Unit Group', top1 ? fmt(top1.count)+' postings, '+pct(top1.count,total)+'% of the selection' : '');
 }
 
 /* ---- regional classification -------------------------------------------- */
@@ -1053,7 +1053,7 @@ function renderClassRegional(rows){
   var grand=rows.length||1;
   var states=Object.keys(stateTot).sort(function(a,b){return stateTot[b]-stateTot[a];});
 
-  /* Table A — every state with volume, national share, and its top-3 ISCO-4 occupations */
+  /* Table A - every state with volume, national share, and its top-3 ISCO-4 occupations */
   var elA=document.getElementById('cls-region-table');
   if(!states.length){
     elA.innerHTML='<p class="chart-empty">There is no regional data for this selection.</p>';
@@ -1064,11 +1064,11 @@ function renderClassRegional(rows){
       var dist=byState[st]||{};
       var top3=Object.keys(dist).sort(function(a,b){return dist[b]-dist[a];}).slice(0,3);
       var cells=[0,1,2].map(function(i){
-        if(!top3[i]) return '<td>\u2014</td>';
+        if(!top3[i]) return '<td>-</td>';
         var o=top3[i], n=dist[o], sh=stateTot[st]?(n/stateTot[st]*100).toFixed(1):0;
         var code=(DATA.isco4CodeByName&&DATA.isco4CodeByName[o])||'';
         return '<td>'+(code?'<span class="badge badge-g">'+esc(String(code))+'</span> ':'')+esc(o)+
-               '<span class="soft"> \u2014 '+fmt(n)+' ('+sh+'%)</span></td>';
+               '<span class="soft">: '+fmt(n)+' ('+sh+'%)</span></td>';
       }).join('');
       h+='<tr><td><b>'+esc(st)+'</b></td><td class="cnt">'+fmt(stateTot[st])+'</td>'+
          '<td class="num">'+pct(stateTot[st],grand)+'%</td>'+cells+'</tr>';
@@ -1076,12 +1076,12 @@ function renderClassRegional(rows){
     elA.innerHTML=h+'</tbody></table>';
   }
 
-  /* Table B — regional concentration per ISCO-4 occupation */
+  /* Table B - regional concentration per ISCO-4 occupation */
   var conc=Object.keys(occTot).map(function(o){
     var dist=byOcc[o]||{}, top=null, n=-1;
     for(var st in dist) if(dist[st]>n){ n=dist[st]; top=st; }
-    return { name:o, code:(DATA.isco4CodeByName&&DATA.isco4CodeByName[o])||'\u2014',
-             total:occTot[o], topState:top||'\u2014', topN:Math.max(n,0),
+    return { name:o, code:(DATA.isco4CodeByName&&DATA.isco4CodeByName[o])||'-',
+             total:occTot[o], topState:top||'-', topN:Math.max(n,0),
              share: occTot[o] ? +(Math.max(n,0)/occTot[o]*100).toFixed(1) : 0,
              nStates:Object.keys(dist).length };
   }).sort(function(a,b){return b.total-a.total;}).slice(0,15);
@@ -1136,7 +1136,7 @@ function classTable(id, arr, total, heads){
   var html='<table class="data-tbl"><thead><tr>'+heads.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+
     '</tr></thead><tbody>';
   arr.forEach(function(d){
-    html+='<tr><td><span class="badge badge-g">'+esc(String(d.code||'—'))+'</span></td>'+
+    html+='<tr><td><span class="badge badge-g">'+esc(String(d.code||'-'))+'</span></td>'+
       '<td><b>'+esc(d.name)+'</b></td><td class="cnt">'+fmt(d.count)+'</td>'+
       '<td class="num">'+pct(d.count,total)+'%</td></tr>';
   });
@@ -1144,7 +1144,7 @@ function classTable(id, arr, total, heads){
 }
 
 /* ============================================================================
-   MARKET CONTEXT — smart connections between top states, top ISCO-4 occupations,
+   MARKET CONTEXT - smart connections between top states, top ISCO-4 occupations,
    and demand shares. Shows the actual structure of the market.
    ============================================================================ */
 function renderMarketContext(rows){
@@ -1172,7 +1172,7 @@ function renderMarketContext(rows){
   var states = Object.keys(stateTot).sort(function(a,b){ return stateTot[b]-stateTot[a]; }).slice(0,12);
   var occs = Object.keys(occTot).sort(function(a,b){ return occTot[b]-occTot[a]; }).slice(0,10);
   
-  /* 1. States and their occupations — horizontal stacked, with an "All other
+  /* 1. States and their occupations - horizontal stacked, with an "All other
         occupations" remainder so every state's bar equals its true total. */
   var HOVER_DARK={bgcolor:'#111827', bordercolor:'#111827', font:{color:'#FFFFFF', size:12, family:'Outfit'}};
   var el1 = document.getElementById('ctx-state-occ');
@@ -1217,7 +1217,7 @@ function renderMarketContext(rows){
            return [st].concat(known).concat([Math.max(0,(stateTot[st]||0)-sum), stateTot[st]||0]); }) });
   }
 
-  /* 2. Occupations and where they sit — horizontal stacked with "All other states". */
+  /* 2. Occupations and where they sit - horizontal stacked with "All other states". */
   var el2 = document.getElementById('ctx-occ-states');
   if (!occs.length){
     el2.innerHTML = '<p class="chart-empty">Not enough data.</p>';
@@ -1298,7 +1298,7 @@ function renderMarketContext(rows){
           '<th>Leading ISCO-4 occupation</th><th>Leading '+catL()+'</th></tr></thead><tbody>';
   states.forEach(function(st, i){
     var stOccs = byStateOcc[st] || {};
-    var topOcc = Object.keys(stOccs).sort(function(a,b){ return stOccs[b]-stOccs[a]; })[0] || '—';
+    var topOcc = Object.keys(stOccs).sort(function(a,b){ return stOccs[b]-stOccs[a]; })[0] || '-';
     var stRo = rows.filter(function(r){ return r[0]>=0 && DATA.lookup.states[r[0]]===st; });
     var leadSec = leadBy(stRo, function(r){ return r[1]>=0 ? DATA.lookup.isic[r[1]] : null; });
     h += '<tr><td class="num">'+(i+1)+'</td><td><b>'+esc(st)+'</b></td>'+
@@ -1310,7 +1310,7 @@ function renderMarketContext(rows){
 }
 
 /* ============================================================================
-   TOP TIERS — ranked "top 10 / 20" analysis, split across five sub-views
+   TOP TIERS - ranked "top 10 / 20" analysis, split across five sub-views
    so that no single page has to carry everything.
    ============================================================================ */
 var TIER_N = 10, TIER_VIEW = 'occ';
@@ -1345,7 +1345,7 @@ function rankOf(counts, total){
 function leadBy(rowsSubset, pick){
   var c = {};
   rowsSubset.forEach(function(r){ var v = pick(r); if (v) c[v] = (c[v]||0)+1; });
-  return topKeyOf(c) || '—';
+  return topKeyOf(c) || '-';
 }
 
 function renderTiers(){
@@ -1376,7 +1376,7 @@ function tierOccupations(rows){
 
   var top10n = ranked.slice(0,10).reduce(function(s,d){ return s+d.count; },0);
   kpi('tocc-k1', fmt(ranked.length), 'Distinct Occupations', 'Four-digit ISCO-08 unit groups found in the current selection');
-  kpi('tocc-k2', ranked[0] ? ranked[0].label : '—', 'Leading Occupation', ranked[0] ? fmt(ranked[0].count)+' postings — '+ranked[0].share.toFixed(1)+'% of demand' : '');
+  kpi('tocc-k2', ranked[0] ? ranked[0].label : '-', 'Leading Occupation', ranked[0] ? fmt(ranked[0].count)+' postings, '+ranked[0].share.toFixed(1)+'% of demand' : '');
   kpi('tocc-k3', pct(top10n,total)+'%', 'Share Held by the Top 10', fmt(top10n)+' of '+fmt(total)+' postings sit in the ten largest occupations');
   kpi('tocc-k4', fmt(total), 'Postings in Selection', 'Classified postings passing the current header filters');
 
@@ -1433,7 +1433,7 @@ function tierOccupations(rows){
           '<th>Postings</th><th>Share</th><th>Leading '+catL()+'</th><th>Leading region</th></tr></thead><tbody>';
   top.forEach(function(d, i){
     var sub = byOcc[d.label] || [];
-    var code = (DATA.isco4CodeByName&&DATA.isco4CodeByName[d.label]) || '—';
+    var code = (DATA.isco4CodeByName&&DATA.isco4CodeByName[d.label]) || '-';
     h += '<tr><td class="num">'+(i+1)+'</td>'+
          '<td><span class="badge">'+esc(String(code))+'</span></td>'+
          '<td><b>'+esc(d.label)+'</b></td>'+
@@ -1450,7 +1450,7 @@ function tierTitles(rows){
   var total = rows.length, c = {}, byTitle = {};
   rows.forEach(function(r){
     var t = (DATA.raw.title[_rowToIdx.get(r)] || '').trim();
-    if (!t || t==='—') return;
+    if (!t || t==='-') return;
     c[t] = (c[t]||0)+1;
     (byTitle[t]=byTitle[t]||[]).push(r);
   });
@@ -1458,12 +1458,12 @@ function tierTitles(rows){
 
   var named = ranked.reduce(function(s,d){ return s+d.count; },0);
   kpi('ttit-k1', fmt(ranked.length), 'Distinct Advertised Titles', 'Unique job titles as written by employers, after cleaning');
-  kpi('ttit-k2', ranked[0] ? ranked[0].label : '—', 'Most Common Title', ranked[0] ? fmt(ranked[0].count)+' postings — '+ranked[0].share.toFixed(1)+'% of the selection' : '');
+  kpi('ttit-k2', ranked[0] ? ranked[0].label : '-', 'Most Common Title', ranked[0] ? fmt(ranked[0].count)+' postings, '+ranked[0].share.toFixed(1)+'% of the selection' : '');
   var top10t = ranked.slice(0,10).reduce(function(s,d){ return s+d.count; },0);
   kpi('ttit-k3', pct(top10t,total)+'%', 'Share Held by the Top 10 Titles', fmt(top10t)+' postings use one of the ten most common titles');
   kpi('ttit-k4', fmt(named), 'Postings with a Usable Title', pct(named,total)+'% of the current selection carries a non-empty title');
 
-  /* Charts removed per review \u2014 the Role Analysis tab covers titles per
+  /* Charts removed per review - the Role Analysis tab covers titles per
      occupation. The KPI strip above and the full ranked table below remain. */
 
   var h = '<table class="data-tbl"><thead><tr><th>Rank</th><th>Advertised job title</th><th>Postings</th><th>Share</th>'+
@@ -1494,7 +1494,7 @@ function tierRegions(rows){
   var located = ranked.reduce(function(s2,d){ return s2+d.count; },0);
   var top3 = ranked.slice(0,3).reduce(function(s2,d){ return s2+d.count; },0);
   kpi('treg-k1', fmt(ranked.length), 'Regions with Demand', 'German federal states carrying at least one posting in the selection');
-  kpi('treg-k2', ranked[0] ? ranked[0].label : '—', 'Leading Region', ranked[0] ? fmt(ranked[0].count)+' postings — '+ranked[0].share.toFixed(1)+'% of demand' : '');
+  kpi('treg-k2', ranked[0] ? ranked[0].label : '-', 'Leading Region', ranked[0] ? fmt(ranked[0].count)+' postings, '+ranked[0].share.toFixed(1)+'% of demand' : '');
   kpi('treg-k3', pct(top3,total)+'%', 'Share Held by the Top 3 Regions', fmt(top3)+' postings are concentrated in just three states');
   kpi('treg-k4', fmt(located), 'Postings with a Location', pct(located,total)+'% of the current selection names a federal state');
 
@@ -1554,7 +1554,7 @@ function tierEmployers(rows){
   var total = rows.length, c = {}, byCo = {};
   rows.forEach(function(r){
     var n = (DATA.raw.company[_rowToIdx.get(r)] || '').trim();
-    if (!n || n==='—') return;
+    if (!n || n==='-') return;
     c[n] = (c[n]||0)+1;
     (byCo[n]=byCo[n]||[]).push(r);
   });
@@ -1564,7 +1564,7 @@ function tierEmployers(rows){
   ensureIdx();
   var staffN = rows.filter(function(r){ return /recruitment agency|job aggregator/i.test(DATA.raw.empCat[_rowToIdx.get(r)]||''); }).length;
   kpi('temp-k1', fmt(ranked.length), 'Distinct Employers', 'Companies advertising at least one posting in the selection');
-  kpi('temp-k2', ranked[0] ? ranked[0].label : '—', 'Most Active Employer', ranked[0] ? fmt(ranked[0].count)+' postings — '+ranked[0].share.toFixed(1)+'% of the selection' : '');
+  kpi('temp-k2', ranked[0] ? ranked[0].label : '-', 'Most Active Employer', ranked[0] ? fmt(ranked[0].count)+' postings, '+ranked[0].share.toFixed(1)+'% of the selection' : '');
   kpi('temp-k3', pct(top10e,total)+'%', 'Share of the 10 Largest Employers', fmt(top10e)+' postings come from the ten most active companies');
   kpi('temp-k4', pct(staffN,total)+'%', 'Advertised via Agencies', fmt(staffN)+' postings were listed by recruitment agencies or aggregators');
 
@@ -1605,12 +1605,12 @@ function tierSectors(rows){
     if (r[1]<0) return;
     var sec2 = DATA.lookup.isic[r[1]];
     var co = (DATA.raw.company[_rowToIdx.get(r)] || '').trim();
-    if (co && co!=='—') (coBySec[sec2]=coBySec[sec2]||{})[co]=1;
+    if (co && co!=='-') (coBySec[sec2]=coBySec[sec2]||{})[co]=1;
   });
   var allCos = {};
   Object.keys(coBySec).forEach(function(sec2){ Object.keys(coBySec[sec2]).forEach(function(co){ allCos[co]=1; }); });
   kpi('tsec-k1', fmt(ranked.length), catPC()+' Identified', 'Distinct '+catPL()+' present in the current selection');
-  kpi('tsec-k2', ranked[0] ? ranked[0].label : '—', 'Leading Sector', ranked[0] ? fmt(ranked[0].count)+' postings — '+ranked[0].share.toFixed(1)+'% of demand' : '');
+  kpi('tsec-k2', ranked[0] ? ranked[0].label : '-', 'Leading Sector', ranked[0] ? fmt(ranked[0].count)+' postings, '+ranked[0].share.toFixed(1)+'% of demand' : '');
   var top3s = ranked.slice(0,3).reduce(function(s2,d){ return s2+d.count; },0);
   kpi('tsec-k3', pct(top3s,total)+'%', 'Share Held by the Top 3 Sectors', fmt(top3s)+' postings sit in the three largest sectors');
   kpi('tsec-k4', fmt(Object.keys(allCos).length), 'Employers Across All Sectors', 'Distinct companies mapped into the sector classification');
@@ -1665,7 +1665,7 @@ function tierSectors(rows){
   top.forEach(function(d, i){
     var sub = bySec[d.label] || [];
     var cos = {};
-    sub.forEach(function(r){ var n = DATA.raw.company[_rowToIdx.get(r)]; if (n && n!=='—') cos[n]=1; });
+    sub.forEach(function(r){ var n = DATA.raw.company[_rowToIdx.get(r)]; if (n && n!=='-') cos[n]=1; });
     h += '<tr><td class="num">'+(i+1)+'</td><td><b>'+esc(d.label)+'</b></td>'+
          '<td class="cnt">'+fmt(d.count)+'</td><td class="num">'+d.share.toFixed(1)+'%</td>'+
          '<td class="num">'+fmt(Object.keys(cos).length)+'</td>'+
@@ -1720,8 +1720,7 @@ function buildStaticTabs(){
       .then(function(html){
         sec.innerHTML=html;
         /* Populate sector glossary immediately (cheap), but DEFER the heavy
-           requirements extractor until the user actually opens the tab —
-           running it at load froze the whole dashboard. Mark what's pending. */
+           requirements extractor until the user actually opens the tab - running it at load froze the whole dashboard. Mark what's pending. */
         populateAboutSectors(sec);
         if (sec.querySelector('#quals-extract')) sec.setAttribute('data-needs-quals','1');
         if (sec.querySelector('#visa-extract'))  sec.setAttribute('data-needs-visa','1');
@@ -1759,7 +1758,7 @@ function populateQualsExtract(scope){
             visa.map(function(d){ return esc(d.t)+' <span style="color:#7A9C9C">('+d.p+'%)</span>'; }).join(' \u00b7 ')+'</div>';
         }
         out+='<div style="margin-top:4px;font-size:11px"><span style="font-weight:700;color:#1A7B7A">Job-specific requirements:</span> '+
-          (job.length? job.map(function(d){ return esc(d.t)+' <span style="color:#7A9C9C">('+d.p+'%)</span>'; }).join(' \u00b7 ') : '\u2014')+
+          (job.length? job.map(function(d){ return esc(d.t)+' <span style="color:#7A9C9C">('+d.p+'%)</span>'; }).join(' \u00b7 ') : '-')+
           '</div></div>';
       });
       host.innerHTML=out || '<div style="padding:14px;color:#7A9C9C;font-size:12px">No classified postings in the dataset.</div>';

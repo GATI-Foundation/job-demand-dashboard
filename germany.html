@@ -8,8 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/base.css?v=20260725-2" />
-  <link rel="stylesheet" href="assets/css/landing.css?v=20260725-2" />
+  <link rel="stylesheet" href="assets/css/base.css?v=20261112-3" />
+  <link rel="stylesheet" href="assets/css/landing.css?v=20261112-3" />
+  <link rel="stylesheet" href="assets/css/footer.css?v=20261112-3" />
 </head>
 <body>
   <header class="site-head">
@@ -62,32 +63,42 @@
         <p class="muted">
           Each sector card opens the same dashboard shell, pointed at that sector via
           <code class="mono">dashboard.html?sector=&lt;id&gt;</code>. The dashboard fetches the sector's
-          clean CSV, builds the data model in the browser, and renders the charts — no server needed.
+          clean CSV, builds the data model in the browser, and renders the charts: no server needed.
           The CSV location is set once in <code class="mono">assets/js/sectors.js</code>.
         </p>
       </div>
     </section>
   </main>
 
-  <footer class="site-foot">
-    <div class="wrap site-foot__row">
+  <footer class="gati-foot">
+    <div class="gati-foot__inner">
+      <div class="gati-foot__brand">
+        <img class="gati-foot__logo" src="assets/img/gati-logo-white.svg" alt="GATI Foundation">
+        <p class="gati-foot__badge">Official GATI Foundation dashboard</p>
+        <p class="gati-foot__tag">Global Access to Talent from India, building the global skills-mobility ecosystem.</p>
+      </div>
       <div>
-        <img class="brand__logo brand__logo--foot" src="assets/img/gati-logo-white.svg" alt="GATI" />
-        <p class="muted" style="color:#B9CFCC;margin:.3rem 0 0;max-width:34ch">
-          Global Access to Talent from India — building the global skills-mobility ecosystem.
-        </p>
+        <h4>Address</h4>
+        <address>GATI Foundation<br>242, Okhla Industrial Estate Phase 3 Rd<br>Okhla Phase III, New Delhi<br>Delhi 110020, India</address>
       </div>
-      <div class="site-foot__links">
-        <a href="https://gatifoundation.org/">Website</a>
-        <a href="https://www.linkedin.com/company/gati-foundation/">LinkedIn</a>
-        <a href="mailto:info@gatifoundation.org">Contact</a>
+      <div>
+        <h4>Contact</h4>
+        <div class="gati-foot__links">
+          <a href="mailto:info@gatifoundation.org">info@gatifoundation.org</a>
+          <a href="https://www.gatifoundation.org/" target="_blank" rel="noopener">gatifoundation.org</a>
+          <a href="https://www.linkedin.com/company/gati-foundation/" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
       </div>
+    </div>
+    <div class="gati-foot__base">
+      <span>&copy; GATI Foundation. Incubated by The Convergence Foundation.</span>
+      <span>Data: StepStone Germany &middot; Classified to ISCO-08 (ILO) and ISIC Rev.4 (UN)</span>
     </div>
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="assets/js/sectors.js?v=20260725-2"></script>
-  <script src="assets/js/landing.js?v=20260725-2"></script>
+  <script src="assets/js/sectors.js?v=20261112-3"></script>
+  <script src="assets/js/landing.js?v=20261112-3"></script>
 
 <!-- Back-to-top button -->
 <style>

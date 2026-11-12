@@ -1,13 +1,13 @@
 /* ============================================================================
    build-meta.mjs
-   Scans data/<sector>.csv and writes data/<sector>.meta.json — a tiny summary
+   Scans data/<sector>.csv and writes data/<sector>.meta.json - a tiny summary
    (total postings, date range, #states, top occupation, build date) that the
    landing page reads so it can show live counts WITHOUT downloading full CSVs.
 
    Run locally:   node scripts/build-meta.mjs
    In CI:         invoked by .github/workflows/deploy.yml before the Pages deploy.
 
-   No dependencies — includes a small RFC-4180 CSV parser so embedded commas,
+   No dependencies - includes a small RFC-4180 CSV parser so embedded commas,
    quotes and newlines in Description/Requirements fields are handled correctly.
    ============================================================================ */
 
@@ -42,7 +42,7 @@ function toObjects(rows) {
   });
 }
 function fmtRange(min, max) {
-  if (!min || !max) return "—";
+  if (!min || !max) return "-";
   const a = min.getDate() + " " + MON[min.getMonth()], b = max.getDate() + " " + MON[max.getMonth()];
   return min.getFullYear() === max.getFullYear()
     ? a + " – " + b + " " + max.getFullYear()
@@ -77,14 +77,14 @@ function buildMeta(sector, csvText) {
 
 /* --- run over every data/*.csv --- */
 const csvs = readdirSync(DATA_DIR).filter((f) => f.toLowerCase().endsWith(".csv"));
-if (!csvs.length) { console.log("No CSVs in data/ — nothing to do."); process.exit(0); }
+if (!csvs.length) { console.log("No CSVs in data/: nothing to do."); process.exit(0); }
 
 for (const file of csvs) {
   const sector = file.replace(/\.csv$/i, "");
   try {
     const meta = buildMeta(sector, readFileSync(join(DATA_DIR, file), "utf8"));
     writeFileSync(join(DATA_DIR, sector + ".meta.json"), JSON.stringify(meta, null, 2) + "\n");
-    console.log(`✓ ${sector}.meta.json  —  ${meta.total} postings, ${meta.states} states, ${meta.dateRange}`);
+    console.log(`✓ ${sector}.meta.json: ${meta.total} postings, ${meta.states} states, ${meta.dateRange}`);
   } catch (e) {
     console.error(`✗ ${file}: ${e.message}`);
   }

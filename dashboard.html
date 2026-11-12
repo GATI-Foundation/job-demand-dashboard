@@ -10,7 +10,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<link rel="stylesheet" href="assets/css/dashboard.css?v=20261112-1">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=20261112-3">
+<link rel="stylesheet" href="assets/css/footer.css?v=20261112-3">
 </head>
 <body>
 
@@ -79,9 +80,9 @@
   <div class="data-banner" id="data-banner"></div>
 
   <div class="filter-box" id="genuine-explain">
-    <b>Duplicate filter (enabled by default):</b> Every job posting is counted as its own post. This filter only removes rows that carry the <i>exact same Job ID</i> more than once — a scraping artifact, not a real second posting. In the current datasets every Job ID is unique, so no postings are removed and the filter has no effect on the numbers.
-    <br><b>Unclear-category filter (on by default):</b> Hides postings whose employer category could not be confidently determined — rows where the classifier's <i>Employer_Category_Confidence_Level</i> is Low, or the category is empty or marked unclear. Turn it on for a stricter view of employer demand.
-    <br><b>Unclassified-occupation filter (on by default):</b> Hides postings that carry no ISCO-08 occupation — rows whose <i>ISCO_4_name</i> is "Unclassified". These are typically non-clinical or off-sector jobs the occupation classifier declined to code. Turn it off to inspect them.
+    <b>Duplicate filter (enabled by default):</b> Every job posting is counted as its own post. This filter only removes rows that carry the <i>exact same Job ID</i> more than once: a scraping artifact, not a real second posting. In the current datasets every Job ID is unique, so no postings are removed and the filter has no effect on the numbers.
+    <br><b>Unclear-category filter (on by default):</b> Hides postings whose employer category could not be confidently determined: rows where the classifier's <i>Employer_Category_Confidence_Level</i> is Low, or the category is empty or marked unclear. Turn it on for a stricter view of employer demand.
+    <br><b>Unclassified-occupation filter (on by default):</b> Hides postings that carry no ISCO-08 occupation: rows whose <i>ISCO_4_name</i> is "Unclassified". These are typically non-clinical or off-sector jobs the occupation classifier declined to code. Turn it off to inspect them.
   </div>
 
   <div class="kpi-row">
@@ -144,7 +145,7 @@
   </div>
 
   <div class="card card-b" style="margin-bottom:14px">
-    <div class="card-head">Which states need which occupations — the full picture</div>
+    <div class="card-head">Which states need which occupations: the full picture</div>
     <div class="card-sub">Every state is a row, every leading ISCO-4 occupation is a column. The cell value is the number of postings that state has for that occupation. Darker cells mean more demand; empty cells mean zero postings for that state-occupation pair.</div>
     <div class="card-body"><div id="ctx-matrix" style="height:520px"></div></div>
   </div>
@@ -351,7 +352,7 @@
   <div id="cv-sectors" class="sub-panel">
     <div class="card card-t" style="margin-bottom:14px">
       <div class="card-head">Employer Sectors · ISIC-2 Level</div>
-      <div class="card-sub">Employer sectors as named in the dataset's Employer_Category column, ranked and then fully listed with their official 2-digit ISIC Rev.4 codes — the sector counterpart to the ISCO-4 listing above.</div>
+      <div class="card-sub">Employer sectors as named in the dataset's Employer_Category column, ranked and then fully listed with their official 2-digit ISIC Rev.4 codes: the sector counterpart to the ISCO-4 listing above.</div>
       <div class="card-body"><div id="sector-chart"></div></div>
       <div class="tbl-wrap" id="sector-table"></div>
     </div>
@@ -363,7 +364,7 @@
     </div>
     <div class="card card-b">
       <div class="card-head">Employer Sector Reference Guide</div>
-      <div class="card-sub">What kind of businesses sit within each ISIC Rev.4 category, so figures like "Accommodation" can be read correctly — it covers hotels, motels, inns, guesthouses and hostels. Sectors are listed by posting volume in the current data.</div>
+      <div class="card-sub">What kind of businesses sit within each ISIC Rev.4 category, so figures like "Accommodation" can be read correctly: it covers hotels, motels, inns, guesthouses and hostels. Sectors are listed by posting volume in the current data.</div>
       <div class="tbl-wrap" id="explorer-isic-guide"></div>
     </div>
   </div>
@@ -401,16 +402,38 @@
 <!-- ====== STATIC (per-sector) TABS mount here ====== -->
 <div id="static-tabs"><!-- About/Methods, Qualifications etc. injected from /content --></div>
 
-<footer id="footer">
-  GATI Foundation · <span id="foot-sector">Sector</span> Labour Market Intelligence · Data: StepStone Germany · Classification: ISCO-08 (ILO), employer sector (ISIC Rev.4) · Build 20260725-2
+<footer class="gati-foot">
+  <div class="gati-foot__inner">
+    <div class="gati-foot__brand">
+      <img class="gati-foot__logo" src="assets/img/gati-logo-white.svg" alt="GATI Foundation">
+      <p class="gati-foot__badge">Official GATI Foundation dashboard</p>
+      <p class="gati-foot__tag">Global Access to Talent from India, building the global skills-mobility ecosystem.</p>
+    </div>
+    <div>
+      <h4>Address</h4>
+      <address>GATI Foundation<br>242, Okhla Industrial Estate Phase 3 Rd<br>Okhla Phase III, New Delhi<br>Delhi 110020, India</address>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <div class="gati-foot__links">
+        <a href="mailto:info@gatifoundation.org">info@gatifoundation.org</a>
+        <a href="https://www.gatifoundation.org/" target="_blank" rel="noopener">gatifoundation.org</a>
+        <a href="https://www.linkedin.com/company/gati-foundation/" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+  </div>
+  <div class="gati-foot__base">
+    <span>&copy; GATI Foundation. Incubated by The Convergence Foundation.</span>
+    <span><span id="foot-sector">Sector</span> Labour Market Intelligence &middot; Data: StepStone Germany &middot; Classification: ISCO-08 (ILO), employer sector (ISIC Rev.4) &middot; Build 20261112-1</span>
+  </div>
 </footer>
 
-<script src="assets/js/sectors.js?v=20260725-2"></script>
-<script src="assets/js/data-loader.js?v=20260725-2"></script>
-<script src="assets/js/requirements-extractor.js?v=20260725-2"></script>
-<script src="assets/js/role-meta.js?v=20260725-2"></script>
-<script src="assets/js/chart-kit.js?v=20260725-2"></script>
-<script src="assets/js/dashboard.js?v=20261112-1"></script>
+<script src="assets/js/sectors.js?v=20261112-3"></script>
+<script src="assets/js/data-loader.js?v=20261112-3"></script>
+<script src="assets/js/requirements-extractor.js?v=20261112-3"></script>
+<script src="assets/js/role-meta.js?v=20261112-3"></script>
+<script src="assets/js/chart-kit.js?v=20261112-3"></script>
+<script src="assets/js/dashboard.js?v=20261112-3"></script>
 
 <!-- Back-to-top button -->
 <style>
@@ -442,7 +465,7 @@
 
 
 <!-- ============================================================
-     GATI AI PANEL — "Ask the data"
+     GATI AI PANEL - "Ask the data"
      Floating Gemini-style button + slide-up chat drawer.
      Context is built from live dashboard state, never raw CSV.
      ============================================================ -->
@@ -598,7 +621,7 @@
   /* ---- greeting + suggested chips ---- */
   function addGreeting(){
     var sector = (APP && APP.sector && APP.sector.label) || 'this sector';
-    addMsg('ai', 'Hi! I can answer questions about the <b>'+esc(sector)+'</b> data currently on screen — occupations, employer sectors, regions, visa signals. What would you like to know?');
+    addMsg('ai', 'Hi! I can answer questions about the <b>'+esc(sector)+'</b> data currently on screen: occupations, employer sectors, regions, visa signals. What would you like to know?');
     var suggestions = [
       'What are the top 3 occupations?',
       'Which state has the most demand?',
@@ -737,7 +760,18 @@
       headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ question:question, context:buildContext(), history:history.slice(-8) })
     }).then(function(res){
-      if(!res.ok){ typing.remove(); addMsg('ai','Sorry, I couldn\'t reach the AI right now. Try again in a moment.'); send.disabled=false; return; }
+      if(!res.ok){
+        /* show the real reason (missing key, bad model, quota) instead of a generic line */
+        res.text().then(function(t){
+          var why = String(t||'').replace(/\s+/g,' ').slice(0,240);
+          typing.remove();
+          addMsg('ai','Sorry, the AI request failed (error '+res.status+')'+(why?': '+esc(why):'.'));
+          console.error('[ask] /api/ask', res.status, t);
+          history.pop();   /* drop the unanswered question so the next request stays clean */
+          send.disabled=false;
+        });
+        return;
+      }
       var reader = res.body.getReader();
       var decoder = new TextDecoder();
       var buf = '', fullText = '';
@@ -782,7 +816,7 @@
       pump();
     }).catch(function(){
       typing.remove();
-      addMsg('ai','Network error — check your connection and try again.');
+      addMsg('ai','Network error. Check your connection and try again.');
       send.disabled = false;
     });
   }

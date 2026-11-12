@@ -1,5 +1,5 @@
 /* ============================================================================
-   SECTOR CONFIG  —  the ONE place you edit to add / point sectors.
+   SECTOR CONFIG - the ONE place you edit to add / point sectors.
    ============================================================================
    WHERE THE CSV IS LOADED: each sector's `csv` is resolved against CSV_BASE.
      1) SAME REPO (default): put clean CSVs in /data, leave CSV_BASE = "".
@@ -13,7 +13,7 @@ const CSV_BASE = ""; // "" = same-repo /data folder, or a raw.githubusercontent.
 /* ---- COUNTRY LAYER --------------------------------------------------------
    Data is organised per country: data/<country>/<sector>.csv. Germany is the
    first corridor; add further countries here and drop their files into their
-   own folder — nothing else needs to change. The active country resolves from
+   own folder - nothing else needs to change. The active country resolves from
    the ?country= URL parameter and defaults to Germany. */
 const COUNTRIES = [
   { id: "germany", label: "Germany", flag: "\uD83C\uDDE9\uD83C\uDDEA", active: true,
@@ -82,7 +82,7 @@ const SECTORS = [
 ];
 
 /* ---------------------------------------------------------------------------
-   REGION (Germany) — shared map config for the Regional tab. All sectors here
+   REGION (Germany) - shared map config for the Regional tab. All sectors here
    are Germany/StepStone. To add another country, add a REGION and point a
    sector at it via sector.region.
    --------------------------------------------------------------------------- */
