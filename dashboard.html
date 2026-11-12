@@ -10,7 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<link rel="stylesheet" href="assets/css/dashboard.css?v=20260725-2">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=20261112-1">
 </head>
 <body>
 
@@ -35,12 +35,24 @@
     <select id="flt-isic" onchange="applyFilters()" aria-label="Filter by employer type">
       <option value="ALL">All Employer Types</option>
     </select>
-    <label><input type="checkbox" id="flt-genuine" checked onchange="applyFilters()"> Remove Duplicate Job IDs</label>
-    <label><input type="checkbox" id="flt-clearcat" checked onchange="applyFilters()"> Hide Unclear Employer Categories</label>
-    <label><input type="checkbox" id="flt-clearocc" checked onchange="applyFilters()"> Hide Unclassified Occupations</label>
+    <div class="hdr-toggles">
+      <label><input type="checkbox" id="flt-genuine" checked onchange="applyFilters()"> Remove Duplicate Job IDs</label>
+      <label><input type="checkbox" id="flt-clearcat" checked onchange="applyFilters()"> Hide Unclear Employer Categories</label>
+      <label><input type="checkbox" id="flt-clearocc" checked onchange="applyFilters()"> Hide Unclassified Occupations</label>
+    </div>
   </div>
   <span id="filter-count"></span>
 </header>
+
+<script>
+/* keep the sticky tab bar directly under the header, whatever height the header wraps to */
+(function(){
+  var hdr = document.getElementById('hdr');
+  function setH(){ document.documentElement.style.setProperty('--hdr-h', hdr.offsetHeight + 'px'); }
+  setH();
+  if (window.ResizeObserver) new ResizeObserver(setH).observe(hdr); else window.addEventListener('resize', setH);
+})();
+</script>
 
 <!-- TAB NAV (Overview/Roles/Regional/Explorer fixed; static tabs appended by JS) -->
 <nav id="tab-nav">
@@ -398,7 +410,7 @@
 <script src="assets/js/requirements-extractor.js?v=20260725-2"></script>
 <script src="assets/js/role-meta.js?v=20260725-2"></script>
 <script src="assets/js/chart-kit.js?v=20260725-2"></script>
-<script src="assets/js/dashboard.js?v=20260725-2"></script>
+<script src="assets/js/dashboard.js?v=20261112-1"></script>
 
 <!-- Back-to-top button -->
 <style>
