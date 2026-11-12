@@ -10,8 +10,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<link rel="stylesheet" href="assets/css/dashboard.css?v=20261112-3">
-<link rel="stylesheet" href="assets/css/footer.css?v=20261112-3">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=20261112-4">
+<link rel="stylesheet" href="assets/css/footer.css?v=20261112-4">
 </head>
 <body>
 
@@ -41,6 +41,11 @@
       <label><input type="checkbox" id="flt-clearcat" checked onchange="applyFilters()"> Hide Unclear Employer Categories</label>
       <label><input type="checkbox" id="flt-clearocc" checked onchange="applyFilters()"> Hide Unclassified Occupations</label>
     </div>
+    <button type="button" id="flt-reset" class="hdr-reset" onclick="resetFilters()" disabled
+            title="Reset all filters to the default view" aria-label="Reset all filters to the default view">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8a5.5 5.5 0 1 0 1.7-4"/><path d="M2.2 1.8v2.8H5"/></svg>
+      Reset
+    </button>
   </div>
   <span id="filter-count"></span>
 </header>
@@ -428,12 +433,12 @@
   </div>
 </footer>
 
-<script src="assets/js/sectors.js?v=20261112-3"></script>
-<script src="assets/js/data-loader.js?v=20261112-3"></script>
-<script src="assets/js/requirements-extractor.js?v=20261112-3"></script>
-<script src="assets/js/role-meta.js?v=20261112-3"></script>
-<script src="assets/js/chart-kit.js?v=20261112-3"></script>
-<script src="assets/js/dashboard.js?v=20261112-3"></script>
+<script src="assets/js/sectors.js?v=20261112-4"></script>
+<script src="assets/js/data-loader.js?v=20261112-4"></script>
+<script src="assets/js/requirements-extractor.js?v=20261112-4"></script>
+<script src="assets/js/role-meta.js?v=20261112-4"></script>
+<script src="assets/js/chart-kit.js?v=20261112-4"></script>
+<script src="assets/js/dashboard.js?v=20261112-4"></script>
 
 <!-- Back-to-top button -->
 <style>

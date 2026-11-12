@@ -197,7 +197,42 @@ function fillDataBanner(){
   document.getElementById('data-banner').innerHTML = items.map(function(it,i){
     return (i? '<span class="db-sep">|</span>' : '') +
       '<div class="db-item"><span class="db-label">'+esc(it[0])+'</span><span class="db-val">'+esc(it[1])+'</span></div>';
-  }).join('');
+  }).join('') + snapshotTimeline(m);
+}
+
+/* Snapshot notice: makes clear the figures are a fixed collection, not live,
+   and draws the timeline: posting window, collection day, and today.       */
+function snapshotTimeline(m){
+  if (!m.firstPosted || !m.lastPosted) return '';
+  var DAY = 864e5;
+  var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function d0(d){ var x = new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+  function day(t){ var d = new Date(t); return MON[d.getMonth()] + ' ' + d.getDate(); }
+  function full(t){ var d = new Date(t); return d.getDate() + ' ' + MON[d.getMonth()] + ' ' + d.getFullYear(); }
+  var a = d0(m.firstPosted), b = d0(m.lastPosted), c = d0(m.collectedOn || m.lastPosted), now = d0(Date.now());
+  if (now < c) now = c;
+  var span = Math.max(now - a, DAY);
+  function pos(t){ return Math.max(0, Math.min(100, (t - a) / span * 100)); }
+  var age = Math.round((now - c) / DAY);
+  var ageTxt = age === 0 ? 'today' : age === 1 ? '1 day ago' : age + ' days ago';
+  var winDays = Math.round((b - a) / DAY) + 1;
+  return '<div class="db-snap" role="note" aria-label="Data snapshot, not live">' +
+    '<div class="db-snap-head"><span class="db-snap-pill">Snapshot &middot; not live</span>' +
+      '<span class="db-snap-age">Collected '+ageTxt+'</span></div>' +
+    '<div class="db-tl" aria-hidden="true">' +
+      '<span class="db-tl-track"></span>' +
+      '<span class="db-tl-win" style="left:'+pos(a)+'%;width:'+Math.max(pos(b)-pos(a),1.5)+'%"></span>' +
+      '<span class="db-tl-gap" style="left:'+pos(c)+'%;width:'+(100-pos(c))+'%"></span>' +
+      '<span class="db-tl-dot db-tl-col" style="left:'+pos(c)+'%" title="Collected '+full(c)+'"></span>' +
+      '<span class="db-tl-dot db-tl-now" style="left:100%" title="Today, '+full(now)+'"></span>' +
+    '</div>' +
+    '<div class="db-tl-labels">' +
+      '<span>'+day(a)+' to '+day(b)+' &middot; posting window</span>' +
+      '<span>Today, '+day(now)+'</span>' +
+    '</div>' +
+    '<div class="db-snap-note">Job postings published '+full(a)+' to '+full(b)+' ('+winDays+' days), collected from '+
+      esc(APP.sector.source || 'StepStone Germany')+' on '+full(c)+'. Figures are a fixed snapshot and do not update in real time.</div>' +
+  '</div>';
 }
 
 /* ======= DATA HELPERS ===================================================== */
@@ -215,6 +250,29 @@ function getRows(){
     return true;
   });
 }
+/* The view a visitor first lands on. resetFilters() returns to it. */
+var DEFAULT_FILTERS = { filterState:'ALL', filterIsic:'ALL', filterGenuine:true, filterClearCat:true, filterClearOcc:true };
+
+function filtersAreDefault(){
+  return Object.keys(DEFAULT_FILTERS).every(function(k){ return APP[k] === DEFAULT_FILTERS[k]; }) && !EXP_SEARCH;
+}
+/* The Reset button lights up only when something differs from the default view. */
+function updateResetBtn(){
+  var b = document.getElementById('flt-reset');
+  if (b) b.disabled = filtersAreDefault();
+}
+function resetFilters(){
+  Object.keys(DEFAULT_FILTERS).forEach(function(k){ APP[k] = DEFAULT_FILTERS[k]; });
+  document.getElementById('flt-state').value = 'ALL';
+  document.getElementById('flt-isic').value  = 'ALL';
+  document.getElementById('flt-genuine').checked = true;
+  var fc = document.getElementById('flt-clearcat'); if (fc) fc.checked = true;
+  var fo = document.getElementById('flt-clearocc'); if (fo) fo.checked = true;
+  var es = document.getElementById('exp-search'); if (es) es.value = '';
+  EXP_SEARCH = '';
+  applyFilters();
+}
+
 function applyFilters(){
   APP.filterState   = document.getElementById('flt-state').value;
   APP.filterIsic    = document.getElementById('flt-isic').value;
@@ -224,6 +282,7 @@ function applyFilters(){
   var _fo = document.getElementById('flt-clearocc');
   APP.filterClearOcc = _fo ? _fo.checked : true;
   EXP_PAGE = 0;
+  updateResetBtn();
   renderAll();
 }
 
@@ -894,7 +953,7 @@ function renderSectorSummary(){
     el2.innerHTML=h2+'</tbody></table>';
   }
 }
-function explorerSearch(){ EXP_SEARCH=document.getElementById('exp-search').value.toLowerCase(); EXP_PAGE=0; renderFullTable(); }
+function explorerSearch(){ EXP_SEARCH=document.getElementById('exp-search').value.toLowerCase(); EXP_PAGE=0; updateResetBtn(); renderFullTable(); }
 
 function renderFullTable(){
   ensureIdx();

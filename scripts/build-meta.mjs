@@ -45,8 +45,8 @@ function fmtRange(min, max) {
   if (!min || !max) return "-";
   const a = min.getDate() + " " + MON[min.getMonth()], b = max.getDate() + " " + MON[max.getMonth()];
   return min.getFullYear() === max.getFullYear()
-    ? a + " – " + b + " " + max.getFullYear()
-    : a + " " + min.getFullYear() + " – " + b + " " + max.getFullYear();
+    ? a + " to " + b + " " + max.getFullYear()
+    : a + " " + min.getFullYear() + " to " + b + " " + max.getFullYear();
 }
 
 function buildMeta(sector, csvText) {

@@ -365,6 +365,7 @@ function buildDATA(rawRows, diag, sector) {
 
   /* 1. Normalise + keep in-scope, classified postings; preserve raw columns. */
   var recs = [];
+  var collectedMax = 0;   /* latest Date_Scraped: when this snapshot was collected */
   rawRows.forEach(function (raw0) {
     var row = normaliseRow(raw0);
     var isco4code = pick(row, ["ISCO_4", "ISCO_Code", "ISCO4"]);
@@ -373,6 +374,9 @@ function buildDATA(rawRows, diag, sector) {
     var dRaw = pick(row, ["Date_Posted", "Date_Scraped"]);
     var d = dRaw ? new Date(dRaw) : null;
     if (d && isNaN(d.getTime())) d = null;
+    var sRaw = pick(row, ["Date_Scraped"]);
+    var sd = sRaw ? new Date(sRaw).getTime() : NaN;
+    if (!isNaN(sd) && sd > collectedMax) collectedMax = sd;
 
     var desc = pick(row, ["Description"]);
     var req  = pick(row, ["Requirements"]);
@@ -592,14 +596,16 @@ function buildDATA(rawRows, diag, sector) {
     sectorEmployers[code] = out;
   });
 
-  var dateRange = dated.length
-    ? fmtDay(new Date(Math.min.apply(null, dated))) + " – " + fmtDay(new Date(Math.max.apply(null, dated)))
-    : "-";
+  var firstPosted = dated.length ? new Date(Math.min.apply(null, dated)) : null;
+  var lastPosted  = dated.length ? new Date(Math.max.apply(null, dated)) : null;
+  var dateRange = dated.length ? fmtDay(firstPosted) + " to " + fmtDay(lastPosted) : "-";
 
   return {
     lookup: { states: states, isic: isic, isco4: isco4, empTypes: empTypes, weekLabels: weekLabels },
     rows: rows, raw: raw,
     meta: { total: rows.length, dateRange: dateRange, weeks: weekLabels.length,
+            firstPosted: firstPosted, lastPosted: lastPosted,
+            collectedOn: collectedMax ? new Date(collectedMax) : lastPosted,
             scraped: rawRows.length, clinical: rows.length,
             cols: diag.headers || [] },
     roleGroups: roleGroups, roleTable: roleTable,
