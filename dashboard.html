@@ -777,14 +777,17 @@
       }
       var reader = res.body.getReader();
       var decoder = new TextDecoder();
-      var buf = '', fullText = '';
+      var buf = '', fullText = '', failed = false;
       var bubble = null;
-      typing.remove();
+      /* keep the typing dots until the first words (or an error) arrive */
+      function stopTyping(){ if(typing && typing.parentNode) typing.remove(); }
 
       function pump(){
         reader.read().then(function(d){
           if(d.done){
             send.disabled = false;
+            stopTyping();
+            if(failed || !fullText){ history.pop(); if(!failed && !bubble) addMsg('ai','Sorry, no answer came back. Please try again.'); return; }
             history.push({ role:'model', text:fullText });
             /* check for chart spec */
             var spec = parseChart(fullText);
@@ -804,9 +807,21 @@
             if(data==='[DONE]') return;
             try{
               var parsed = JSON.parse(data);
+              if(parsed.error){
+                /* the server streams errors too, since the response starts before Gemini answers */
+                var why = String(parsed.error).replace(/\s+/g,' ').slice(0,240);
+                var busy = parsed.status===503 || parsed.status===429 || /high demand|overloaded|UNAVAILABLE|RESOURCE_EXHAUSTED|did not respond/i.test(why);
+                console.error('[ask] stream error', parsed.status, parsed.error);
+                failed = true;
+                stopTyping();
+                addMsg('ai', busy
+                  ? 'The AI service is busy right now. Please try again in a minute.'
+                  : 'Sorry, the AI request failed (error '+(parsed.status||'')+'): '+esc(why));
+                return;
+              }
               if(parsed.text){
                 fullText += parsed.text;
-                if(!bubble) bubble = addMsg('ai','');
+                if(!bubble){ stopTyping(); bubble = addMsg('ai',''); }
                 /* render markdown-lite: **bold**, bullet points */
                 bubble.innerHTML = mdLite(fullText);
                 msgs.scrollTop = msgs.scrollHeight;
@@ -814,7 +829,10 @@
             }catch(e){}
           });
           pump();
-        }).catch(function(){ send.disabled=false; });
+        }).catch(function(){
+          send.disabled=false; stopTyping();
+          if(!fullText){ history.pop(); addMsg('ai','The connection dropped before an answer arrived. Please try again.'); }
+        });
       }
       pump();
     }).catch(function(){

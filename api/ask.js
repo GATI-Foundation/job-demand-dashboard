@@ -16,6 +16,7 @@ const FALLBACKS = (process.env.GEMINI_FALLBACK_MODELS || "gemini-3.6-flash,gemin
   .split(",").map(function(m) { return m.trim(); }).filter(Boolean);
 const RETRYABLE = [429, 500, 502, 503, 504];
 const sleep = function(ms) { return new Promise(function(r) { setTimeout(r, ms); }); };
+const ATTEMPT_TIMEOUT_MS = 30000;   /* max wait for one model to start answering */
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
 
 export default async function handler(req) {
@@ -92,67 +93,93 @@ RULES:
     ],
   };
 
-  /* Try the main model (twice, with a short pause), then each fallback once.
-     Stop at the first success, or at an error that retrying cannot fix
-     (bad key, bad request).                                                 */
-  const attempts = [MODEL, MODEL].concat(FALLBACKS.filter(function(m) { return m !== MODEL; }));
-  let geminiRes = null, lastStatus = 502, lastErr = "";
-  for (let i = 0; i < attempts.length; i++) {
-    if (i > 0) await sleep(i === 1 ? 800 : 300);
-    const url = `${API_BASE}${attempts[i]}:streamGenerateContent?alt=sse`;
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) { geminiRes = res; break; }
-      lastStatus = res.status;
-      lastErr = await res.text();
-      /* a fallback model the key cannot use (404) is skipped, not fatal */
-      if (!RETRYABLE.includes(res.status) && !(res.status === 404 && i > 0)) break;
-    } catch (e) {
-      lastStatus = 502;
-      lastErr = "Gemini API unreachable: " + e.message;
-    }
-  }
-  if (!geminiRes) {
-    return new Response("Gemini error: " + lastErr, { status: lastStatus });
-  }
-
-  /* Stream Gemini's SSE response straight back to the client */
+  /* Vercel ends an Edge function that has not started its response within
+     25 seconds (FUNCTION_INVOCATION_TIMEOUT). Gemini can take longer than that
+     to send its first word, especially while busy, so the response starts
+     immediately and everything else happens inside the stream. A comment
+     line (": ping") goes out every few seconds so the connection stays open. */
   const { readable, writable } = new TransformStream();
   const writer = writable.getWriter();
   const encoder = new TextEncoder();
+  const send = function(obj) { return writer.write(encoder.encode("data: " + JSON.stringify(obj) + "\n\n")); };
+  const ping = setInterval(function() { writer.write(encoder.encode(": ping\n\n")).catch(function() {}); }, 5000);
 
   (async () => {
-    const reader = geminiRes.body.getReader();
-    const decoder = new TextDecoder();
-    let buf = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const lines = buf.split("\n");
-      buf = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const data = line.slice(6).trim();
-        if (data === "[DONE]") continue;
+    try {
+      await writer.write(encoder.encode(": start\n\n"));
+
+      /* Try the main model (twice, with a short pause), then each fallback once.
+         Stop at the first success, or at an error that retrying cannot fix
+         (bad key, bad request). Each attempt gets its own time limit.       */
+      const attempts = [MODEL, MODEL].concat(FALLBACKS.filter(function(m) { return m !== MODEL; }));
+      let geminiRes = null, lastStatus = 502, lastErr = "";
+      let timedOut = false;
+      for (let i = 0; i < attempts.length; i++) {
+        /* a model that just timed out is not retried, move to the next one */
+        if (timedOut && attempts[i] === attempts[i - 1]) continue;
+        timedOut = false;
+        if (i > 0) await sleep(i === 1 ? 800 : 300);
+        const url = `${API_BASE}${attempts[i]}:streamGenerateContent?alt=sse`;
+        const ctrl = new AbortController();
+        const timer = setTimeout(function() { ctrl.abort(); }, ATTEMPT_TIMEOUT_MS);
         try {
-          const parsed = JSON.parse(data);
-          /* join every answer part; skip "thought" parts from the model's reasoning */
-          const parts = parsed?.candidates?.[0]?.content?.parts || [];
-          const text = parts.filter(function(p) { return p.text && !p.thought; })
-                            .map(function(p) { return p.text; }).join("");
-          if (text) {
-            await writer.write(encoder.encode("data: " + JSON.stringify({ text }) + "\n\n"));
-          }
-        } catch (e) { /* skip malformed lines */ }
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+            body: JSON.stringify(payload),
+            signal: ctrl.signal,
+          });
+          clearTimeout(timer);
+          if (res.ok) { geminiRes = res; break; }
+          lastStatus = res.status;
+          lastErr = await res.text();
+          /* a fallback model the key cannot use (404) is skipped, not fatal */
+          if (!RETRYABLE.includes(res.status) && !(res.status === 404 && i > 0)) break;
+        } catch (e) {
+          clearTimeout(timer);
+          timedOut = e.name === "AbortError";
+          lastStatus = timedOut ? 504 : 502;
+          lastErr = e.name === "AbortError"
+            ? attempts[i] + " did not respond within " + (ATTEMPT_TIMEOUT_MS / 1000) + "s"
+            : "Gemini API unreachable: " + e.message;
+        }
       }
+      if (!geminiRes) {
+        await send({ error: "Gemini error: " + lastErr, status: lastStatus });
+        return;
+      }
+
+      /* Relay Gemini's answer text to the browser as it arrives */
+      const reader = geminiRes.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(data);
+            /* join every answer part; skip "thought" parts from the model's reasoning */
+            const parts = parsed?.candidates?.[0]?.content?.parts || [];
+            const text = parts.filter(function(p) { return p.text && !p.thought; })
+                              .map(function(p) { return p.text; }).join("");
+            if (text) await send({ text });
+          } catch (e) { /* skip malformed lines */ }
+        }
+      }
+    } catch (e) {
+      await send({ error: "Assistant error: " + e.message, status: 500 }).catch(function() {});
+    } finally {
+      clearInterval(ping);
+      await writer.write(encoder.encode("data: [DONE]\n\n")).catch(function() {});
+      await writer.close().catch(function() {});
     }
-    await writer.write(encoder.encode("data: [DONE]\n\n"));
-    await writer.close();
   })();
 
   return new Response(readable, {
