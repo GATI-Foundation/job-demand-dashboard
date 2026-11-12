@@ -683,7 +683,7 @@ function renderMap(){
   if(APP.leafletMap){ APP.leafletMap.remove(); APP.leafletMap=null; }
   var reg=APP.region, nameMap=reg.nameMap||{};
   APP.leafletMap=L.map('geo-map',{zoomControl:false}).setView(reg.center||[51.2,10.4], reg.zoom||5);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=cb1_2n40_1_0b5fd80ac2608df16bd700ff',
     {attribution:'&copy; CartoDB',opacity:0.55}).addTo(APP.leafletMap);
   var geo=DATA.stateGeo;
   var maxHC=Math.max.apply(null, Object.keys(geo).map(function(k){return geo[k].hc;}).concat([1]));
