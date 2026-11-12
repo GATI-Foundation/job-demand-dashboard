@@ -10,6 +10,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/css/base.css?v=20260725-2" />
   <link rel="stylesheet" href="assets/css/landing.css?v=20260725-2" />
+  <style>
+    .crumbs{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:13px;margin:0 0 14px}
+    .crumbs a{color:#0F5B5A;text-decoration:none;font-weight:500}
+    .crumbs a:hover,.crumbs a:focus-visible{text-decoration:underline}
+    .crumbs [aria-current]{color:#22312F;font-weight:600}
+    .crumbs .sep{opacity:.55}
+  </style>
 </head>
 <body>
   <header class="site-head">
@@ -29,6 +36,10 @@
     <!-- Hero -->
     <section class="hero">
       <div class="wrap hero__inner">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="index.html">Home</a><span class="sep" aria-hidden="true">&rsaquo;</span>
+          <span aria-current="page">Germany</span>
+        </nav>
         <p class="eyebrow">Global Skills Mobility · Germany corridor</p>
         <h1 class="hero__title">Where Germany is hiring, sector by sector.</h1>
         <p class="hero__lede">
@@ -48,24 +59,12 @@
     <section class="wrap sectors">
       <div class="sectors__head">
         <h2>Choose a sector</h2>
-        <p class="muted">The landing counts come from tiny per-sector meta.json files; each dashboard reads the full CSV only when you open it.</p>
+        <p class="muted">Select a sector to open its full dashboard.</p>
       </div>
       <div id="sector-grid" class="sector-grid" role="list">
         <!-- cards injected by landing.js -->
       </div>
-    </section>
-
-    <!-- Data note -->
-    <section class="wrap datanote">
-      <div class="card datanote__card">
-        <h3>How the data flows</h3>
-        <p class="muted">
-          Each sector card opens the same dashboard shell, pointed at that sector via
-          <code class="mono">dashboard.html?sector=&lt;id&gt;</code>. The dashboard fetches the sector's
-          clean CSV, builds the data model in the browser, and renders the charts — no server needed.
-          The CSV location is set once in <code class="mono">assets/js/sectors.js</code>.
-        </p>
-      </div>
+      <noscript><p class="muted">Please enable JavaScript to view the sector dashboards.</p></noscript>
     </section>
   </main>
 
