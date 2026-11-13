@@ -16,7 +16,8 @@ const FALLBACKS = (process.env.GEMINI_FALLBACK_MODELS || "gemini-3.6-flash,gemin
   .split(",").map(function(m) { return m.trim(); }).filter(Boolean);
 const RETRYABLE = [429, 500, 502, 503, 504];
 const sleep = function(ms) { return new Promise(function(r) { setTimeout(r, ms); }); };
-const ATTEMPT_TIMEOUT_MS = 30000;   /* max wait for one model to start answering */
+const ATTEMPT_TIMEOUT_MS = 15000;   /* max wait for one model to start answering */
+const TOTAL_BUDGET_MS = 40000;      /* give up on all attempts after this, so the user is not left waiting */
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
 
 export default async function handler(req) {
@@ -114,7 +115,9 @@ RULES:
       const attempts = [MODEL, MODEL].concat(FALLBACKS.filter(function(m) { return m !== MODEL; }));
       let geminiRes = null, lastStatus = 502, lastErr = "";
       let timedOut = false;
+      const started = Date.now();
       for (let i = 0; i < attempts.length; i++) {
+        if (Date.now() - started > TOTAL_BUDGET_MS - ATTEMPT_TIMEOUT_MS && i > 0) break;
         /* a model that just timed out is not retried, move to the next one */
         if (timedOut && attempts[i] === attempts[i - 1]) continue;
         timedOut = false;
@@ -133,6 +136,11 @@ RULES:
           if (res.ok) { geminiRes = res; break; }
           lastStatus = res.status;
           lastErr = await res.text();
+          /* a used-up quota is not fixed by retrying: report it straight away */
+          if (res.status === 429 && /quota|per day|PerDay/i.test(lastErr)) {
+            await send({ error: "Gemini quota exceeded: " + lastErr, status: 429, quota: true });
+            return;
+          }
           /* a fallback model the key cannot use (404) is skipped, not fatal */
           if (!RETRYABLE.includes(res.status) && !(res.status === 404 && i > 0)) break;
         } catch (e) {

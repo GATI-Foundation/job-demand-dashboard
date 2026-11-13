@@ -93,7 +93,39 @@ function drawChart(id, traces, layout, meta){
 /* ---- click-to-copy for hover info ----------------------------------------
    Native Plotly hover tooltips cannot contain buttons, so clicking a point
    pins the same information in a card with a clear Copy button.             */
+/* Render the trace's own hovertemplate so the card always matches the
+   chart, whatever the customdata layout is. */
+function fmtHoverVal(v, f){
+  if (v == null) return '';
+  if (!f) return String(v);
+  var n = Number(v);
+  if (isNaN(n)) return String(v);
+  var m = /^(,)?(?:\.(\d+)f)?$/.exec(f);
+  if (!m) return String(v);
+  var dp = m[2] != null ? +m[2] : null;
+  if (m[1]) return n.toLocaleString(undefined, dp != null ? { minimumFractionDigits:dp, maximumFractionDigits:dp } : {});
+  return dp != null ? n.toFixed(dp) : String(v);
+}
+function linesFromTemplate(pt){
+  var tpl = pt.data && pt.data.hovertemplate;
+  if (Array.isArray(tpl)) tpl = tpl[pt.pointNumber];
+  if (!tpl || typeof tpl !== 'string') return null;
+  var cd = pt.customdata;
+  var out = tpl.replace(/<extra>[\s\S]*?<\/extra>/g, '').replace(/%\{([^}:]+)(?::([^}]*))?\}/g, function(_, key, f){
+    var v, mm = /^customdata\[(\d+)\]$/.exec(key);
+    if (mm) v = cd ? (Array.isArray(cd) ? cd[+mm[1]] : undefined) : undefined;
+    else if (key === 'customdata') v = cd;
+    else if (key === 'x' || key === 'y' || key === 'z' || key === 'text') v = pt[key];
+    else if (key === 'fullData.name' || key === 'data.name') v = pt.data && pt.data.name;
+    else v = pt[key];
+    return fmtHoverVal(v, f);
+  });
+  var lines = out.split(/<br\s*\/?>/i).map(stripTags).filter(Boolean);
+  return lines.length ? lines : null;
+}
 function linesFromPoint(pt){
+  var fromTpl = linesFromTemplate(pt);
+  if (fromTpl) return fromTpl;
   var lines = [];
   if (pt.customdata && pt.customdata.length){
     var cd = pt.customdata;

@@ -10,8 +10,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<link rel="stylesheet" href="assets/css/dashboard.css?v=20261112-4">
-<link rel="stylesheet" href="assets/css/footer.css?v=20261112-4">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=20261113-2">
+<link rel="stylesheet" href="assets/css/footer.css?v=20261113-2">
 </head>
 <body>
 
@@ -37,9 +37,9 @@
       <option value="ALL">All Employer Types</option>
     </select>
     <div class="hdr-toggles">
-      <label><input type="checkbox" id="flt-genuine" checked onchange="applyFilters()"> Remove Duplicate Job IDs</label>
-      <label><input type="checkbox" id="flt-clearcat" checked onchange="applyFilters()"> Hide Unclear Employer Categories</label>
-      <label><input type="checkbox" id="flt-clearocc" checked onchange="applyFilters()"> Hide Unclassified Occupations</label>
+      <label title="Removes rows that repeat the exact same Job ID (a scraping artifact). The current files have no repeated IDs, so this changes nothing today."><input type="checkbox" id="flt-genuine" checked onchange="applyFilters()"> Remove Duplicate Job IDs</label>
+      <label title="Hides postings whose employer industry could not be identified with confidence (Low confidence, empty or unclear)."><input type="checkbox" id="flt-clearcat" checked onchange="applyFilters()"> Hide Unclear Employer Categories</label>
+      <label title="Hides postings that have no ISCO-08 occupation code."><input type="checkbox" id="flt-clearocc" checked onchange="applyFilters()"> Hide Unclassified Occupations</label>
     </div>
     <button type="button" id="flt-reset" class="hdr-reset" onclick="resetFilters()" disabled
             title="Reset all filters to the default view" aria-label="Reset all filters to the default view">
@@ -83,12 +83,6 @@
 <!-- ====== OVERVIEW ====== -->
 <section id="tab-overview" class="tab-panel active" hidden>
   <div class="data-banner" id="data-banner"></div>
-
-  <div class="filter-box" id="genuine-explain">
-    <b>Duplicate filter (enabled by default):</b> Every job posting is counted as its own post. This filter only removes rows that carry the <i>exact same Job ID</i> more than once: a scraping artifact, not a real second posting. In the current datasets every Job ID is unique, so no postings are removed and the filter has no effect on the numbers.
-    <br><b>Unclear-category filter (on by default):</b> Hides postings whose employer category could not be confidently determined: rows where the classifier's <i>Employer_Category_Confidence_Level</i> is Low, or the category is empty or marked unclear. Turn it on for a stricter view of employer demand.
-    <br><b>Unclassified-occupation filter (on by default):</b> Hides postings that carry no ISCO-08 occupation: rows whose <i>ISCO_4_name</i> is "Unclassified". These are typically non-clinical or off-sector jobs the occupation classifier declined to code. Turn it off to inspect them.
-  </div>
 
   <div class="kpi-row">
     <div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="kpi-total"></div></div>
@@ -433,12 +427,12 @@
   </div>
 </footer>
 
-<script src="assets/js/sectors.js?v=20261112-4"></script>
-<script src="assets/js/data-loader.js?v=20261112-4"></script>
-<script src="assets/js/requirements-extractor.js?v=20261112-4"></script>
-<script src="assets/js/role-meta.js?v=20261112-4"></script>
-<script src="assets/js/chart-kit.js?v=20261112-4"></script>
-<script src="assets/js/dashboard.js?v=20261112-4"></script>
+<script src="assets/js/sectors.js?v=20261113-2"></script>
+<script src="assets/js/data-loader.js?v=20261113-2"></script>
+<script src="assets/js/requirements-extractor.js?v=20261113-2"></script>
+<script src="assets/js/role-meta.js?v=20261113-2"></script>
+<script src="assets/js/chart-kit.js?v=20261113-2"></script>
+<script src="assets/js/dashboard.js?v=20261113-2"></script>
 
 <!-- Back-to-top button -->
 <style>
@@ -770,8 +764,9 @@
         res.text().then(function(t){
           var why = String(t||'').replace(/\s+/g,' ').slice(0,240);
           typing.remove();
+          var quota = /quota/i.test(why);
           var busy = res.status===503 || res.status===429 || /high demand|overloaded|UNAVAILABLE|RESOURCE_EXHAUSTED/i.test(why);
-          addMsg('ai', busy
+          addMsg('ai', quota ? 'The AI assistant has reached its usage limit for now. Please try again later, or contact the GATI team if this keeps happening.' : busy
             ? 'The AI service is busy right now. Please try again in a minute.'
             : 'Sorry, the AI request failed (error '+res.status+')'+(why?': '+esc(why):'.'));
           console.error('[ask] /api/ask', res.status, t);
@@ -819,7 +814,8 @@
                 console.error('[ask] stream error', parsed.status, parsed.error);
                 failed = true;
                 stopTyping();
-                addMsg('ai', busy
+                var quota = parsed.quota || /quota/i.test(why);
+                addMsg('ai', quota ? 'The AI assistant has reached its usage limit for now. Please try again later, or contact the GATI team if this keeps happening.' : busy
                   ? 'The AI service is busy right now. Please try again in a minute.'
                   : 'Sorry, the AI request failed (error '+(parsed.status||'')+'): '+esc(why));
                 return;

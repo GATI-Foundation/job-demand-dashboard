@@ -330,6 +330,40 @@ function renderAll(){
   if (APP.activeTab==='classify')   renderClassifications(rows);
   if (APP.activeTab==='context')    renderMarketContext(rows);
   if (APP.activeTab==='tiers')      renderTiers();
+  tagClassifications();
+}
+
+/* ---- classification used by each chart, shown under its subtitle -------- */
+var CLS_TAGS = {
+  'chart-top10':'o4', 'chart-cross':'o4e', 'chart-trend':'o2', 'chart-isic':'e',
+  'ctx-state-occ':'o4', 'ctx-occ-states':'o4', 'ctx-matrix':'o4', 'ctx-summary-table':'o4e',
+  'tier-occ-bar':'o4', 'tier-occ-sector':'o4e', 'tier-occ-table':'o4e', 'tier-title-table':'o4e',
+  'tier-region-mix':'o4', 'tier-region-table':'o4e', 'tier-emp-bar':'e', 'tier-emp-table':'o4e',
+  'tier-sector-bar':'e', 'tier-sector-geo':'e', 'tier-sector-table':'o4e',
+  'chart-states':'e', 'isco4-chart':'o4', 'explorer-table':'o4e', 'sector-chart':'e',
+  'explorer-isic-table':'e', 'explorer-isic-guide':'e',
+  'cls-region-table':'o4', 'cls-conc-table':'o4', 'cls-state':'o4'
+};
+var CLS_PREFIX = { 'rc-top-':'o4', 'rc-isic-':'e', 'rc-cos-':'e', 'rc-empbysec-':'e' };
+function clsText(k){
+  var o4 = 'Occupations: ISCO-08 unit groups (4-digit)';
+  var o2 = 'Occupations: ISCO-08 sub-major groups (2-digit)';
+  var e  = catPC() + ': ISIC Rev. 4 divisions (2-digit)';
+  return k === 'o4' ? o4 : k === 'o2' ? o2 : k === 'e' ? e : o4 + ' \u00b7 ' + e;
+}
+function tagClassifications(){
+  document.querySelectorAll('[id]').forEach(function(el){
+    var k = CLS_TAGS[el.id];
+    if (!k) for (var pre in CLS_PREFIX){ if (el.id.indexOf(pre) === 0){ k = CLS_PREFIX[pre]; break; } }
+    if (!k) return;
+    var body = el.closest('.card-body, .tbl-wrap') || el;
+    var sub = body.previousElementSibling;
+    while (sub && !sub.classList.contains('card-sub')) sub = sub.previousElementSibling;
+    if (!sub || sub.querySelector('.cls-tag')) return;
+    var t = document.createElement('span');
+    t.className = 'cls-tag'; t.textContent = clsText(k);
+    sub.appendChild(t);
+  });
 }
 
 
@@ -443,14 +477,13 @@ function hBar(id, items, opts){
 
 function renderAlert(rows){
   var total=rows.length, ic={}, isicc={};
-  rows.forEach(function(r){ var l=DATA.lookup.isco4[r[4]]; if(l&&l!=='Other') ic[l]=(ic[l]||0)+1; });
+  rows.forEach(function(r){ var l=DATA.lookup.isco4[r[4]]; if(l&&l!=='Other'&&l!=='Unclassified') ic[l]=(ic[l]||0)+1; });
   rows.forEach(function(r){ if(r[1]>=0){ var c=DATA.lookup.isic[r[1]]; isicc[c]=(isicc[c]||0)+1; } });
   var tr = topKeyOf(ic)||'N/A', te = topKeyOf(isicc)||'N/A';
   var el=document.getElementById('ov-alert');
   if(el) el.innerHTML='<b>Key finding:</b> Germany\'s '+esc(APP.sector.label.toLowerCase())+
-    ' sector posted <b>'+fmt(total)+' vacancies</b> over the '+esc(DATA.meta.dateRange||'collection')+' window. '+
-    'Most-advertised occupation: <b>'+esc(tr)+'</b>. Largest hiring sector: <b>'+esc(te)+'</b>. '+
-    'All figures reflect the current header filters (state, employer type, duplicate Job IDs, unclear categories).';
+    ' sector posted <b>'+fmt(total)+' job postings</b> over the '+esc(DATA.meta.dateRange||'collection')+' window. '+
+    'Most-advertised occupation: <b>'+esc(tr)+'</b>. Largest hiring sector: <b>'+esc(te)+'</b>.';
 }
 function topKeyOf(o){ var b=null,n=-1; for(var k in o) if(o[k]>n){n=o[k];b=k;} return b; }
 
@@ -1361,7 +1394,7 @@ function renderMarketContext(rows){
     var stRo = rows.filter(function(r){ return r[0]>=0 && DATA.lookup.states[r[0]]===st; });
     var leadSec = leadBy(stRo, function(r){ return r[1]>=0 ? DATA.lookup.isic[r[1]] : null; });
     h += '<tr><td class="num">'+(i+1)+'</td><td><b>'+esc(st)+'</b></td>'+
-         '<td class="cnt">'+fmt(stateTot[st])+'</td><td class="num">'+pct(stateTot[st],total).toFixed(1)+'%</td>'+
+         '<td class="cnt">'+fmt(stateTot[st])+'</td><td class="num">'+pct(stateTot[st],total)+'%</td>'+
          '<td>'+esc(topOcc)+'</td>'+
          '<td>'+esc(leadSec)+'</td></tr>';
   });

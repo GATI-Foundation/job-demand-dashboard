@@ -192,3 +192,6 @@ body{font-family:'Outfit',sans-serif;background:#F2F6F6;color:#0F2E2E;font-size:
 
 /* muted inline annotation used in classification region tables */
 .data-tbl td .soft{color:var(--ink-soft,#7A8C8C);font-size:11px;white-space:nowrap}
+
+/* classification used by a chart, under its subtitle */
+.card-sub .cls-tag{display:block;margin-top:4px;font-size:11px;font-weight:600;letter-spacing:.02em;color:#1A7B7A}
