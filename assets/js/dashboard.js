@@ -297,10 +297,9 @@ function showTab(id, btn){
   var rows = getRows();
   if (id==='roles')      renderRoleTab(rows, APP.activeRole);
   if (id==='regional'){  renderStateBar(rows); renderStateTable(rows); initMap(); }
-  if (id==='explorer')   renderExplorer();
+  if (id==='regional')   tierSectors(rows);
+  if (id==='explorer'){  renderExplorer(); tierTitles(rows); }
   if (id==='classify')   renderClassifications(rows);
-  if (id==='context')    renderMarketContext(rows);
-  if (id==='tiers')      renderTiers();
 
   /* Run the heavy requirements extractor lazily - only when the user opens
      a tab that needs it, and only once. This keeps the initial dashboard
@@ -323,13 +322,12 @@ function renderAll(){
   document.getElementById('filter-count').textContent = fmt(rows.length) + ' postings';
   updateKPIs(rows); renderAlert(rows);
   renderTop10(rows); renderCrossTab(rows);
-  renderTrend(rows); renderIsicBar(rows); renderOverviewRegions(rows);
+  renderTrend(rows); renderIsicBar(rows); tierEmployers(rows); renderOverviewRegions(rows);
   if (APP.activeTab==='roles')      renderRoleTab(rows, APP.activeRole);
   if (APP.activeTab==='regional'){  renderStateBar(rows); renderStateTable(rows); }
-  if (APP.activeTab==='explorer')   renderExplorer();
+  if (APP.activeTab==='regional')   tierSectors(rows);
+  if (APP.activeTab==='explorer'){  renderExplorer(); tierTitles(rows); }
   if (APP.activeTab==='classify')   renderClassifications(rows);
-  if (APP.activeTab==='context')    renderMarketContext(rows);
-  if (APP.activeTab==='tiers')      renderTiers();
   tagClassifications();
 }
 
@@ -1546,7 +1544,7 @@ function tierTitles(rows){
     c[t] = (c[t]||0)+1;
     (byTitle[t]=byTitle[t]||[]).push(r);
   });
-  var ranked = rankOf(c, total), top = ranked.slice(0, TIER_N);
+  var ranked = rankOf(c, total), top = ranked.slice(0, 25);
 
   var named = ranked.reduce(function(s,d){ return s+d.count; },0);
   kpi('ttit-k1', fmt(ranked.length), 'Distinct Advertised Titles', 'Unique job titles as written by employers, after cleaning');
@@ -1650,7 +1648,7 @@ function tierEmployers(rows){
     c[n] = (c[n]||0)+1;
     (byCo[n]=byCo[n]||[]).push(r);
   });
-  var ranked = rankOf(c, total), top = ranked.slice(0, TIER_N);
+  var ranked = rankOf(c, total), top = ranked.slice(0, 25);
 
   var top10e = ranked.slice(0,10).reduce(function(s2,d){ return s2+d.count; },0);
   ensureIdx();
@@ -1660,12 +1658,12 @@ function tierEmployers(rows){
   kpi('temp-k3', pct(top10e,total)+'%', 'Share of the 10 Largest Employers', fmt(top10e)+' postings come from the ten most active companies');
   kpi('temp-k4', pct(staffN,total)+'%', 'Advertised via Agencies', fmt(staffN)+' postings were listed by recruitment agencies or aggregators');
 
-  hBar('tier-emp-bar', top.map(function(d){
+  hBar('tier-emp-bar', top.slice(0, 10).map(function(d){
     var sub = byCo[d.label] || [];
     var sec = leadBy(sub, function(r){ return r[1]>=0 ? DATA.lookup.isic[r[1]] : null; });
     return { label:d.label, count:d.count, color:isicColor(sec) };
   }), { total:total, pct:false, wrap:30, ofWhat:'postings',
-        title:'Top '+TIER_N+' employers by postings' });
+        title:'Top 10 employers by postings' });
 
   var h = '<table class="data-tbl"><thead><tr><th>Rank</th><th>Employer</th><th>Postings</th><th>Share</th>'+
           '<th>Employer sector</th><th>Leading occupation</th><th>Leading region</th></tr></thead><tbody>';
@@ -1764,7 +1762,7 @@ function tierSectors(rows){
          '<td>'+esc(leadBy(sub, function(r){ return r[4]>=0 ? DATA.lookup.isco4[r[4]] : null; }))+'</td>'+
          '<td>'+esc(leadBy(sub, function(r){ return r[0]>=0 ? DATA.lookup.states[r[0]] : null; }))+'</td></tr>';
   });
-  document.getElementById('tier-sector-table').innerHTML = h + '</tbody></table>';
+  var stEl = document.getElementById('tier-sector-table'); if (stEl) stEl.innerHTML = h + '</tbody></table>';
 }
 
 /* ---- shared Pareto (bars only, ranked) ------------------------------- */

@@ -10,8 +10,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<link rel="stylesheet" href="assets/css/dashboard.css?v=20261113-2">
-<link rel="stylesheet" href="assets/css/footer.css?v=20261113-2">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=20261113-3">
+<link rel="stylesheet" href="assets/css/footer.css?v=20261113-3">
 </head>
 <body>
 
@@ -63,8 +63,6 @@
 <!-- TAB NAV (Overview/Roles/Regional/Explorer fixed; static tabs appended by JS) -->
 <nav id="tab-nav">
   <button class="tab-btn active" onclick="showTab('overview',this)">Overview</button>
-  <button class="tab-btn" onclick="showTab('context',this)">Market Context</button>
-  <button class="tab-btn" onclick="showTab('tiers',this)">Top Tiers</button>
   <button class="tab-btn" onclick="showTab('roles',this)">Role Analysis</button>
   <button class="tab-btn" onclick="showTab('regional',this)">Regional Map</button>
   <button class="tab-btn" onclick="showTab('explorer',this)">Data Explorer</button>
@@ -118,150 +116,22 @@
   </div>
 
   <div class="card card-t" style="margin-top:14px">
+    <div class="card-head">Top 10 Employers</div>
+    <div class="card-sub">The organisations advertising the most postings across the whole sector, coloured by their employer sector. Role Analysis shows the same ranking within a single occupation.</div>
+    <div class="card-body"><div id="tier-emp-bar"></div></div>
+  </div>
+
+  <div class="card card-b" style="margin-top:14px">
+    <div class="card-head">Top 25 Employers</div>
+    <div class="card-sub">Each employer with its posting count, share of postings, employer sector, and the occupation and state it recruits for most.</div>
+    <div class="tbl-wrap" id="tier-emp-table"></div>
+  </div>
+
+  <div class="card card-t" style="margin-top:14px">
     <div class="card-head">Regions ranked by posting volume</div>
-    <div class="card-sub">The ten German states holding the most postings in the current selection, so the geography of demand is visible at a glance. The Top Tiers tab carries the full regional analysis.</div>
+    <div class="card-sub">The ten German states holding the most postings in the current selection, so the geography of demand is visible at a glance. The Regional Map tab carries the full state breakdown.</div>
     <div class="card-body"><div id="ov-region-pareto" style="height:280px"></div></div>
   </div>
-</section>
-
-<!-- ====== MARKET CONTEXT ====== -->
-<section id="tab-context" class="tab-panel" hidden>
-  <div class="insight-box">
-    <b>Where the demand sits.</b> This view connects the three most important dimensions: which states are hiring, which specific ISCO-4 occupations they want, and what that demand represents in percentage terms. All filters apply.
-  </div>
-
-  <div class="grid-2" style="margin-bottom:14px">
-    <div class="card card-t">
-      <div class="card-head">Top states and their leading occupations</div>
-      <div class="card-sub">The postings in each leading state, grouped by the four-digit ISCO occupations that state is hiring for. Hover any section to read the exact occupation name and posting count.</div>
-      <div class="card-body"><div id="ctx-state-occ" style="height:420px"></div></div>
-    </div>
-    <div class="card card-g">
-      <div class="card-head">Top occupations and where they sit</div>
-      <div class="card-sub">The leading ISCO-4 occupations, with bars showing how the demand for each spreads across states. A short bar means that occupation is concentrated in one or two places; a long bar means it appears nationwide.</div>
-      <div class="card-body"><div id="ctx-occ-states" style="height:420px"></div></div>
-    </div>
-  </div>
-
-  <div class="card card-b" style="margin-bottom:14px">
-    <div class="card-head">Which states need which occupations: the full picture</div>
-    <div class="card-sub">Every state is a row, every leading ISCO-4 occupation is a column. The cell value is the number of postings that state has for that occupation. Darker cells mean more demand; empty cells mean zero postings for that state-occupation pair.</div>
-    <div class="card-body"><div id="ctx-matrix" style="height:520px"></div></div>
-  </div>
-
-  <div class="card card-t">
-    <div class="card-head">Market summary table</div>
-    <div class="card-sub">A condensed view of the entire market: each row is a state, showing its postings, share of national demand, top occupation in that state, and the employer sector that leads there.</div>
-    <div class="tbl-wrap" id="ctx-summary-table"></div>
-  </div>
-</section>
-
-<!-- ====== TOP TIERS ====== -->
-<section id="tab-tiers" class="tab-panel" hidden>
-  <div class="insight-box" id="tier-intro"></div>
-
-  <div class="tier-bar">
-    <span class="tier-lbl">Show the top</span>
-    <div class="tier-seg" id="tier-n">
-      <button class="active" onclick="setTierN(10,this)">10</button>
-      <button onclick="setTierN(20,this)">20</button>
-    </div>
-    <span class="tier-lbl">ranked entries. Every header filter still applies, and each chart can be exported from the button in its top-right corner.</span>
-  </div>
-
-  <div class="sub-tab-nav">
-    <button class="sub-btn active" onclick="showTierView('occ',this)">Occupations (ISCO-4)</button>
-    <button class="sub-btn" onclick="showTierView('title',this)">Advertised Job Titles</button>
-    <button class="sub-btn" onclick="showTierView('region',this)">Regions</button>
-    <button class="sub-btn" onclick="showTierView('employer',this)">Employers</button>
-    <button class="sub-btn" onclick="showTierView('sector',this)">Employer Sectors (ISIC-2)</button>
-  </div>
-
-  <!-- OCCUPATIONS -->
-  <div id="tv-occ" class="sub-panel active">
-<div class="kpi-row"><div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="tocc-k1"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="tocc-k2"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="tocc-k3"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="tocc-k4"></div></div></div>
-    <div class="card card-t" style="margin-bottom:14px">
-      <div class="card-head">Ranked occupations at the four-digit ISCO level</div>
-      <div class="card-sub">These are the specific unit groups being advertised, ranked by the number of postings. Each bar is labelled with its official ISCO-4 code so the ranking can be carried straight into a policy or training document.</div>
-      <div class="card-body"><div id="tier-occ-bar"></div></div>
-    </div>
-    <div class="card card-g" style="margin-bottom:14px">
-      <div class="card-head">Who employs each of the leading occupations?</div>
-      <div class="card-sub">The same ranked occupations, split by the employer sectors advertising them. This shows immediately whether an occupation is hired directly by hotels, restaurants or transport firms, or predominantly through staffing agencies.</div>
-      <div class="card-body"><div id="tier-occ-sector"></div></div>
-    </div>
-    <div class="card card-b">
-      <div class="card-head">Full ranked table of occupations</div>
-      <div class="card-sub">The same ranking in tabular form, including the leading employer sector and the leading region for each occupation.</div>
-      <div class="tbl-wrap" id="tier-occ-table"></div>
-    </div>
-  </div>
-
-  <!-- JOB TITLES -->
-  <div id="tv-title" class="sub-panel">
-<div class="kpi-row"><div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="ttit-k1"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="ttit-k2"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="ttit-k3"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="ttit-k4"></div></div></div>
-    <div class="card card-b">
-      <div class="card-head">Full ranked table of advertised job titles</div>
-      <div class="card-sub">Each advertised title with the number of postings, the ISCO-4 occupation it was classified into, and the employer sector that advertises it most often.</div>
-      <div class="tbl-wrap" id="tier-title-table"></div>
-    </div>
-  </div>
-
-  <!-- REGIONS -->
-  <div id="tv-region" class="sub-panel">
-<div class="kpi-row"><div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="treg-k1"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="treg-k2"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="treg-k3"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="treg-k4"></div></div></div>
-    <div class="card card-t" style="margin-bottom:14px">
-      <div class="card-head">Regions ranked by posting volume</div>
-      <div class="card-sub">Every region carrying location data, ranked by how many postings it holds, so you can see at a glance how much of national demand the leading regions represent.</div>
-      <div class="card-body"><div id="tier-region-pareto" style="height:340px"></div></div>
-    </div>
-    <div class="card card-g" style="margin-bottom:14px">
-      <div class="card-head">What each leading region actually demands</div>
-      <div class="card-sub">The leading occupations within each of the top regions, drawn as grouped bars. This is the view to use when deciding which occupation to prepare candidates for in a specific state.</div>
-      <div class="card-body"><div id="tier-region-mix" style="height:420px"></div></div>
-    </div>
-    <div class="card card-b">
-      <div class="card-head">Full ranked table of regions</div>
-      <div class="card-sub">Each region with its posting count, its share of national demand, and the occupation and employer sector that lead within it.</div>
-      <div class="tbl-wrap" id="tier-region-table"></div>
-    </div>
-  </div>
-
-  <!-- EMPLOYERS -->
-  <div id="tv-employer" class="sub-panel">
-<div class="kpi-row"><div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="temp-k1"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="temp-k2"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="temp-k3"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="temp-k4"></div></div></div>
-    <div class="card card-t" style="margin-bottom:14px">
-      <div class="card-head">Employers ranked by number of postings</div>
-      <div class="card-sub">Named organisations advertising the most roles, coloured by the employer sector they belong to. These are the concrete counterparties a placement partnership would need to approach.</div>
-      <div class="card-body"><div id="tier-emp-bar"></div></div>
-    </div>
-    <div class="card card-b">
-      <div class="card-head">Full ranked table of employers</div>
-      <div class="card-sub">Each employer with its posting count, its share of demand, its sector, and the occupation and region it recruits for most.</div>
-      <div class="tbl-wrap" id="tier-emp-table"></div>
-    </div>
-  </div>
-
-  <!-- SECTORS -->
-  <div id="tv-sector" class="sub-panel">
-<div class="kpi-row"><div class="kpi-card"><div class="kpi-accent" style="background:#1A7B7A"></div><div class="kpi-body" id="tsec-k1"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#C98A0B"></div><div class="kpi-body" id="tsec-k2"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#5B7C8D"></div><div class="kpi-body" id="tsec-k3"></div></div><div class="kpi-card"><div class="kpi-accent" style="background:#0F5B5A"></div><div class="kpi-body" id="tsec-k4"></div></div></div>
-    <div class="card card-t" style="margin-bottom:14px">
-      <div class="card-head">Employer sectors ranked by posting volume</div>
-      <div class="card-sub">Which kinds of organisation are generating demand, ranked by their number of postings and shown with their share of the sector total.</div>
-      <div class="card-body"><div id="tier-sector-bar"></div></div>
-    </div>
-    <div class="card card-g" style="margin-bottom:14px">
-      <div class="card-head">Where each employer sector recruits</div>
-      <div class="card-sub">The regional footprint of every employer sector, row-normalised so each row shows how that sector spreads its own demand across regions rather than how large the sector is.</div>
-      <div class="card-body"><div id="tier-sector-geo" style="height:420px"></div></div>
-    </div>
-    <div class="card card-b">
-      <div class="card-head">Full ranked table of employer sectors</div>
-      <div class="card-sub">Each employer sector with its posting count, its share of demand, the number of distinct employers it contains, and the occupation and region that lead within it.</div>
-      <div class="tbl-wrap" id="tier-sector-table"></div>
-    </div>
-  </div>
-
 </section>
 
 <!-- ====== ROLE ANALYSIS ====== -->
@@ -290,6 +160,11 @@
     <div class="card-sub">Every state sorted by posting volume, with its leading employer sector and share of national demand.</div>
     <div class="tbl-wrap" id="state-table"></div>
   </div>
+  <div class="card card-g" style="margin-top:14px">
+    <div class="card-head">Where Each Employer Sector Recruits</div>
+    <div class="card-sub">How each of the ten largest employer sectors spreads its postings across the states. Each row adds up to 100% of that sector's postings, so the view shows where a sector recruits rather than how large it is.</div>
+    <div class="card-body"><div id="tier-sector-geo" style="height:420px"></div></div>
+  </div>
 </section>
 
 <!-- ====== DATA EXPLORER ====== -->
@@ -309,6 +184,11 @@
     </div>
     <div class="tbl-wrap" id="explorer-full"></div>
     <div id="explorer-nav" style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid #D4E5E5;font-size:11px"></div>
+  </div>
+  <div class="card card-b" style="margin-top:14px">
+    <div class="card-head">Top 25 Advertised Job Titles</div>
+    <div class="card-sub">The job titles employers use most often across the sector, with the number of postings, the ISCO-4 occupation each title was classified into, and the employer sector that advertises it most.</div>
+    <div class="tbl-wrap" id="tier-title-table"></div>
   </div>
 </section>
 
@@ -427,12 +307,12 @@
   </div>
 </footer>
 
-<script src="assets/js/sectors.js?v=20261113-2"></script>
-<script src="assets/js/data-loader.js?v=20261113-2"></script>
-<script src="assets/js/requirements-extractor.js?v=20261113-2"></script>
-<script src="assets/js/role-meta.js?v=20261113-2"></script>
-<script src="assets/js/chart-kit.js?v=20261113-2"></script>
-<script src="assets/js/dashboard.js?v=20261113-2"></script>
+<script src="assets/js/sectors.js?v=20261113-3"></script>
+<script src="assets/js/data-loader.js?v=20261113-3"></script>
+<script src="assets/js/requirements-extractor.js?v=20261113-3"></script>
+<script src="assets/js/role-meta.js?v=20261113-3"></script>
+<script src="assets/js/chart-kit.js?v=20261113-3"></script>
+<script src="assets/js/dashboard.js?v=20261113-3"></script>
 
 <!-- Back-to-top button -->
 <style>
